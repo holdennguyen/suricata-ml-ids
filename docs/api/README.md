@@ -336,7 +336,7 @@ For API support and questions:
 
 ## Changelog
 
-### v1.0.0 (2024-01-15)
+### v1.0.0 (2025-09-06)
 - Initial API documentation
 - Feature Extractor API v1.0
 - ML Trainer API v1.0
