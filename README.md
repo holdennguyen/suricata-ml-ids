@@ -122,6 +122,32 @@ cd suricata-ml-ids
 ./scripts/demo.sh demo
 ```
 
+## 🛠️ Development
+
+### Smart Rebuild System
+```bash
+# Rebuild specific service with cache-busting
+./scripts/dev-rebuild.sh ml-trainer
+
+# Rebuild all services
+./scripts/dev-rebuild.sh all
+
+# Force clean rebuild (for persistent issues)
+./scripts/dev-rebuild.sh all force-clean
+```
+
+### Development Workflow
+1. **Make Code Changes**: Edit source files in `services/*/src/`
+2. **Smart Rebuild**: `./scripts/dev-rebuild.sh [service]`
+3. **Auto Health Check**: Script verifies service is running
+4. **Test Changes**: Service automatically reloaded with new code
+
+### Cache-Busting Features
+- **Automatic**: Timestamp-based cache invalidation
+- **Guaranteed Fresh Code**: No more stale container issues
+- **Fast Rebuilds**: Only rebuilds changed layers
+- **Health Verification**: Ensures services start correctly
+
 ## 🎓 Educational Features
 
 ### ML Pipeline

@@ -87,14 +87,12 @@ async def root():
         }
     }
 
-@app.post("/train", response_model=TrainingResponse)
-async def train_models(
-    request: TrainingRequest,
-    background_tasks: BackgroundTasks
-):
+@app.post("/train")
+async def train_models(request: TrainingRequest):
     """Train ML models on the provided dataset"""
     try:
         start_time = time.time()
+        logger.info(f"Starting training with dataset: {DATASETS_DIR / request.dataset_filename}")
         
         # Validate dataset
         dataset_path = DATASETS_DIR / request.dataset_filename
@@ -103,8 +101,6 @@ async def train_models(
                 status_code=404,
                 detail=f"Dataset not found: {request.dataset_filename}"
             )
-        
-        logger.info(f"Starting training with dataset: {dataset_path}")
         
         # Load and preprocess data
         df = pd.read_csv(dataset_path)
@@ -118,94 +114,75 @@ async def train_models(
         training_results = {}
         
         if "decision_tree" in request.algorithms:
+            logger.info("Training Decision Tree...")
             dt_result = await ml_trainer.train_decision_tree(
                 X, y, feature_names, request.hyperparameters.get("decision_tree", {})
             )
             training_results["decision_tree"] = dt_result
+            logger.info(f"Decision Tree training completed: {dt_result['accuracy']:.4f} accuracy")
         
         if "knn" in request.algorithms:
+            logger.info("Training k-NN...")
             knn_result = await ml_trainer.train_knn(
                 X, y, feature_names, request.hyperparameters.get("knn", {})
             )
             training_results["knn"] = knn_result
+            logger.info(f"k-NN training completed: {knn_result['accuracy']:.4f} accuracy")
         
         if "ensemble" in request.algorithms:
+            logger.info("Training Ensemble...")
             ensemble_result = await ml_trainer.train_ensemble(
                 X, y, feature_names, request.hyperparameters.get("ensemble", {})
             )
             training_results["ensemble"] = ensemble_result
+            logger.info(f"Ensemble training completed: {ensemble_result['accuracy']:.4f} accuracy")
         
-        # Save models
+        # Save models and create response
         model_files = {}
-        try:
-            dataset_stem = Path(request.dataset_filename).stem
-            logger.info(f"Dataset stem: {dataset_stem}")
-            
-            for algorithm, result in training_results.items():
-                model_filename = f"{dataset_stem}_{algorithm}_model.joblib"
-                model_path = MODELS_DIR / model_filename
-                
-                logger.info(f"Saving model: {algorithm} -> {model_path}")
-                await ml_trainer.save_model(result["model"], model_path)
-                model_files[algorithm] = model_filename
-                
-                logger.info(f"Saved {algorithm} model to: {model_path}")
-        except Exception as e:
-            logger.error(f"Error in model saving section: {str(e)}")
-            raise
+        dataset_stem = Path(request.dataset_filename).stem
+        
+        for algorithm, result in training_results.items():
+            model_filename = f"{dataset_stem}_{algorithm}_model.joblib"
+            model_path = MODELS_DIR / model_filename
+            await ml_trainer.save_model(result["model"], model_path)
+            model_files[algorithm] = model_filename
+            logger.info(f"Saved {algorithm} model to: {model_filename}")
         
         # Calculate overall training time
         training_time = time.time() - start_time
         
         # Find best performing model
-        try:
-            logger.info(f"Training results keys: {list(training_results.keys())}")
-            best_algorithm = max(
-                training_results.keys(),
-                key=lambda k: training_results[k]["accuracy"]
-            )
-            best_accuracy = training_results[best_algorithm]["accuracy"]
-            logger.info(f"Best algorithm: {best_algorithm}, accuracy: {best_accuracy}")
-        except Exception as e:
-            logger.error(f"Error finding best algorithm: {str(e)}")
-            raise
-        
-        # Check if accuracy target is met
+        best_algorithm = max(training_results.keys(), key=lambda k: training_results[k]["accuracy"])
+        best_accuracy = training_results[best_algorithm]["accuracy"]
         target_met = best_accuracy >= ACCURACY_TARGET
         
-        # Create simplified response to avoid serialization issues
-        try:
-            # Create clean training results without model objects for response
-            clean_results = {}
-            for alg, result in training_results.items():
-                clean_results[alg] = {
-                    "accuracy": result["accuracy"],
-                    "precision": result.get("precision", 0),
-                    "recall": result.get("recall", 0),
-                    "f1_score": result.get("f1_score", 0),
-                    "training_time": result.get("training_time", 0)
-                }
-            
-            response_data = {
-                "dataset_filename": request.dataset_filename,
-                "algorithms_trained": list(training_results.keys()),
-                "training_results": clean_results,
-                "model_files": model_files,
-                "best_algorithm": best_algorithm,
-                "best_accuracy": best_accuracy,
-                "accuracy_target_met": target_met,
-                "training_time": training_time,
-                "message": f"Training completed successfully. Best accuracy: {best_accuracy:.4f} ({best_algorithm})"
+        # Create clean response data with proper type conversion
+        clean_results = {}
+        for alg, result in training_results.items():
+            clean_results[alg] = {
+                "accuracy": float(result["accuracy"]),
+                "precision": float(result.get("precision", 0)),
+                "recall": float(result.get("recall", 0)),
+                "f1_score": float(result.get("f1_score", 0)),
+                "training_time": float(result.get("training_time", 0))
             }
-            logger.info("Response data created successfully")
-        except Exception as e:
-            logger.error(f"Error creating response data: {str(e)}")
-            raise
+        
+        response_data = {
+            "status": "success",
+            "dataset_filename": str(request.dataset_filename),
+            "algorithms_trained": list(training_results.keys()),
+            "training_results": clean_results,
+            "model_files": model_files,
+            "best_algorithm": str(best_algorithm),
+            "best_accuracy": float(best_accuracy),
+            "accuracy_target_met": bool(target_met),  # Convert numpy bool_ to Python bool
+            "training_time": float(training_time),
+            "message": f"Training completed successfully. Best accuracy: {best_accuracy:.4f} ({best_algorithm})"
+        }
         
         # Save training results
         results_filename = f"{dataset_stem}_training_results.json"
         results_path = RESULTS_DIR / results_filename
-        
         with open(results_path, 'w') as f:
             import json
             json.dump(response_data, f, indent=2, default=str)
@@ -215,6 +192,8 @@ async def train_models(
         
     except Exception as e:
         logger.error(f"Error training models: {str(e)}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/evaluate", response_model=EvaluationResponse)

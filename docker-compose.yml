@@ -55,6 +55,8 @@ services:
     build:
       context: ./services/ml-trainer
       dockerfile: Dockerfile
+      args:
+        CACHEBUST: ${CACHEBUST:-1}
     container_name: ml-trainer
     ports:
       - "8002:8002"

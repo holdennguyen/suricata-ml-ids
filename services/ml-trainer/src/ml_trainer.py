@@ -104,20 +104,49 @@ class MLTrainer:
             # Cross-validation
             cv_scores = cross_val_score(best_model, X, y, cv=5)
             
-            # Feature importance
-            feature_importance = dict(zip(
-                feature_names, 
-                best_model.feature_importances_
-            ))
-            
-            # Sort features by importance
-            sorted_features = sorted(
-                feature_importance.items(), 
-                key=lambda x: x[1], 
-                reverse=True
-            )
+            # Feature importance - safely handle feature names
+            try:
+                # Ensure feature names are strings
+                safe_feature_names = [str(name) for name in feature_names]
+                feature_importance = dict(zip(
+                    safe_feature_names, 
+                    best_model.feature_importances_
+                ))
+                
+                # Sort features by importance
+                sorted_features = sorted(
+                    feature_importance.items(), 
+                    key=lambda x: x[1], 
+                    reverse=True
+                )
+            except Exception as e:
+                logger.error(f"Error processing feature importance: {str(e)}")
+                # Fallback to simple feature importance
+                feature_importance = {}
+                sorted_features = []
             
             training_time = time.time() - start_time
+            
+            # Safely format top features as strings
+            safe_top_features = []
+            try:
+                for feature_name, importance in sorted_features[:10]:
+                    safe_top_features.append({
+                        'feature': str(feature_name),
+                        'importance': float(importance)
+                    })
+            except Exception as e:
+                logger.error(f"Error formatting top features: {str(e)}")
+                safe_top_features = []
+            
+            # Safely convert best_params to avoid Path objects
+            safe_best_params = {}
+            try:
+                for key, value in grid_search.best_params_.items():
+                    safe_best_params[str(key)] = str(value) if hasattr(value, 'stem') else value
+            except Exception as e:
+                logger.error(f"Error processing best_params: {str(e)}")
+                safe_best_params = {}
             
             result = {
                 'model': best_model,
@@ -128,9 +157,9 @@ class MLTrainer:
                 'f1_score': f1,
                 'cv_mean': cv_scores.mean(),
                 'cv_std': cv_scores.std(),
-                'best_params': grid_search.best_params_,
+                'best_params': safe_best_params,
                 'feature_importance': feature_importance,
-                'top_features': sorted_features[:10],
+                'top_features': safe_top_features,
                 'training_time': training_time
             }
             

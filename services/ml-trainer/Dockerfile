@@ -16,7 +16,10 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Add cache-busting argument to ensure source code is always copied fresh
+ARG CACHEBUST=1
+
+# Copy application code (this layer will be rebuilt when CACHEBUST changes)
 COPY src/ ./src/
 
 # Create necessary directories
