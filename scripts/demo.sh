@@ -199,24 +199,26 @@ demo_realtime_detection() {
          -H "Content-Type: application/json" \
          -d '{
            "features": {
-             "total_packets": 45.0,
-             "total_bytes": 4800.0,
-             "avg_packet_size": 106.7,
+             "total_packets": 150,
+             "total_bytes": 15000,
+             "avg_packet_size": 100.0,
+             "duration": 5.0,
              "tcp_ratio": 0.8,
-             "udp_ratio": 0.15,
-             "icmp_ratio": 0.05,
-             "packets_per_second": 8.5,
-             "unique_src_ips": 2.0,
-             "unique_dst_ips": 3.0,
-             "tcp_syn_ratio": 0.2,
-             "well_known_ports": 5.0,
-             "payload_entropy": 6.2,
-             "suspicious_flags": 0.0,
-             "http_requests": 4.0,
-             "dns_queries": 2.0,
-             "tls_handshakes": 1.0
-           },
-           "source_ip": "192.168.1.100"
+             "udp_ratio": 0.2,
+             "icmp_ratio": 0.0,
+             "packets_per_second": 30.0,
+             "unique_src_ips": 2,
+             "unique_dst_ips": 3,
+             "tcp_syn_ratio": 0.6,
+             "well_known_ports": 0.6,
+             "high_ports": 0.4,
+             "payload_entropy": 7.5,
+             "fragmented_packets": 0.1,
+             "suspicious_flags": 0.05,
+             "http_requests": 10,
+             "dns_queries": 5,
+             "tls_handshakes": 3
+           }
          }' | jq '.'
     
     print_demo "Testing attack traffic detection..."
@@ -225,24 +227,26 @@ demo_realtime_detection() {
          -H "Content-Type: application/json" \
          -d '{
            "features": {
-             "total_packets": 250.0,
-             "total_bytes": 15000.0,
-             "avg_packet_size": 60.0,
+             "total_packets": 500,
+             "total_bytes": 25000,
+             "avg_packet_size": 50.0,
+             "duration": 2.0,
              "tcp_ratio": 0.95,
              "udp_ratio": 0.05,
              "icmp_ratio": 0.0,
-             "packets_per_second": 50.0,
-             "unique_src_ips": 1.0,
-             "unique_dst_ips": 25.0,
+             "packets_per_second": 250.0,
+             "unique_src_ips": 1,
+             "unique_dst_ips": 50,
              "tcp_syn_ratio": 0.9,
-             "well_known_ports": 20.0,
+             "well_known_ports": 0.2,
+             "high_ports": 0.8,
              "payload_entropy": 3.0,
-             "suspicious_flags": 8.0,
-             "http_requests": 0.0,
-             "dns_queries": 0.0,
-             "tls_handshakes": 0.0
-           },
-           "source_ip": "10.0.0.100"
+             "fragmented_packets": 0.3,
+             "suspicious_flags": 0.8,
+             "http_requests": 0,
+             "dns_queries": 0,
+             "tls_handshakes": 0
+           }
          }' | jq '.'
     
     print_success "Real-time detection demo completed!"
