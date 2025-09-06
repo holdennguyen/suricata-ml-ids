@@ -115,7 +115,6 @@ services:
       - "8003:8003"
     volumes:
       - ./data/pcaps:/app/pcaps
-      - ./data/synthetic:/app/synthetic
     environment:
       - PYTHONUNBUFFERED=1
       - LOG_LEVEL=INFO
@@ -188,6 +187,26 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 15s
       timeout: 3s
+      retries: 3
+
+  # Real-time Log Shipper (replaces Filebeat)
+  log-shipper:
+    build:
+      context: ./services/log-shipper
+    container_name: log-shipper
+    networks:
+      - ids-network
+    volumes:
+      - ./data/logs:/var/log/suricata:ro
+    depends_on:
+      - elasticsearch
+      - suricata
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio; import elasticsearch; print('OK')"]
+      interval: 30s
+      timeout: 10s
       retries: 3
 
 volumes:

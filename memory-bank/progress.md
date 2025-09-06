@@ -40,7 +40,8 @@
 - [x] **Elasticsearch Integration** - SIEM log storage and search (ELK Stack)
 - [x] **Kibana Dashboards** - Security visualization interface
 - [x] **Redis Service** - Caching and message queuing
-- [x] **Synthetic Data Generation** - Educational training datasets
+- [x] **Log Shipper Service** - Real-time eve.json → Elasticsearch streaming
+- [x] **Synthetic Data Generation** - Educational training datasets (ML training only)
 
 ### Automation & Deployment
 - [x] **Setup Script (setup.sh)** - Complete environment preparation

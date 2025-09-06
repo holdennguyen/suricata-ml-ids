@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 PCAP_DIR = Path("/app/pcaps")
-SYNTHETIC_DIR = Path("/app/synthetic")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,7 +32,6 @@ async def lifespan(app: FastAPI):
     
     # Create directories if they don't exist
     PCAP_DIR.mkdir(exist_ok=True)
-    SYNTHETIC_DIR.mkdir(exist_ok=True)
     
     logger.info("Traffic Replay Service started successfully")
     yield

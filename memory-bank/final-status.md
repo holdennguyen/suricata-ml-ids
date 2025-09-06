@@ -21,6 +21,7 @@
 | **Elasticsearch** | ✅ Running | 9200 | GREEN cluster status |
 | **Kibana** | ✅ Running | 5601 | Dashboard functional |
 | **Redis** | ✅ Running | 6379 | Service healthy |
+| **Log Shipper** | ✅ Running | - | Real-time streaming active |
 
 #### **Performance Targets Met**
 - **Real-time Detection**: 14-23ms latency (Target: <100ms) ✅ **EXCEEDED**
@@ -30,7 +31,8 @@
 
 #### **Educational Value Delivered**
 - **Complete ML Pipeline**: Feature extraction → Training → Real-time detection
-- **Industry Tools**: Suricata, OpenSearch, scikit-learn, FastAPI, Docker
+- **Industry Tools**: Suricata, Elasticsearch, scikit-learn, FastAPI, Docker
+- **Real-time Streaming**: Direct eve.json → Elasticsearch integration
 - **Hands-on Learning**: Working system ready for experimentation
 - **Research Platform**: Comparative algorithm analysis framework
 

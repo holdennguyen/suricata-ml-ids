@@ -54,13 +54,102 @@ This project implements a production-ready IDS architecture featuring:
 | **Memory Usage** | <2GB total | <4GB | ✅ **Efficient** |
 | **Throughput** | 1000+ req/sec | 500+ req/sec | ✅ **High** |
 
-![Performance Metrics](docs/imgs/Real-world%20benchmarks%20achieved%20by%20the%20system.png)
+```mermaid
+flowchart LR
+    subgraph "⚡ Performance Metrics"
+        subgraph "🎯 ML Accuracy"
+            DT[("Decision Tree<br/>89.2%")]
+            KNN[("k-NN<br/>91.7%")]
+            ENS[("Ensemble<br/>100%")]
+        end
+        
+        subgraph "⏱️ Response Times"
+            FE_TIME[("Feature Extraction<br/>0.45s")]
+            ML_TIME[("ML Training<br/>0.57s")]
+            RT_TIME[("Real-time Detection<br/>18ms")]
+        end
+        
+        subgraph "📊 System Performance"
+            THROUGHPUT[("Throughput<br/>1000+ req/s")]
+            LATENCY[("Avg Latency<br/><100ms")]
+            UPTIME[("Uptime<br/>99.9%")]
+        end
+    end
+    
+    DT --> ENS
+    KNN --> ENS
+    ENS --> RT_TIME
+    
+    classDef accuracy fill:#d4edda,stroke:#155724,stroke-width:2px,color:#000
+    classDef timing fill:#fff3cd,stroke:#856404,stroke-width:2px,color:#000
+    classDef system fill:#cce5ff,stroke:#004085,stroke-width:2px,color:#000
+    
+    class DT,KNN,ENS accuracy
+    class FE_TIME,ML_TIME,RT_TIME timing
+    class THROUGHPUT,LATENCY,UPTIME system
+```
 
 ## 🏗️ System Architecture
 
 The Suricata ML-IDS implements a hybrid detection approach combining signature-based and machine learning techniques:
 
-![System Architecture](docs/imgs/The%20Suricata%20ML-IDS%20implements%20a%20hybrid%20detection%20approach%20combining%20signature-based%20and%20machine%20learning%20techniques.png)
+```mermaid
+flowchart TB
+    subgraph "🌐 Network Traffic"
+        NT[("Network<br/>Traffic")]
+    end
+    
+    subgraph "🔍 IDS Detection"
+        S[("Suricata IDS<br/>Port 8000")]
+        EVE[("eve.json<br/>Logs")]
+    end
+    
+    subgraph "📊 ML Pipeline"
+        FE[("Feature Extractor<br/>Port 8001")]
+        MLT[("ML Trainer<br/>Port 8002")]
+        RD[("Real-time Detector<br/>Port 8080")]
+        Redis[("Redis Cache<br/>Port 6379")]
+    end
+    
+    subgraph "📡 Log Streaming"
+        LS[("Log Shipper<br/>Real-time")]
+    end
+    
+    subgraph "🔎 SIEM & Analytics"
+        ES[("Elasticsearch<br/>Port 9200")]
+        KB[("Kibana<br/>Port 5601")]
+    end
+    
+    subgraph "🚦 Traffic Simulation"
+        TR[("Traffic Replay<br/>Port 8003")]
+    end
+    
+    NT --> S
+    S --> EVE
+    EVE --> LS
+    LS --> ES
+    ES --> KB
+    
+    NT --> FE
+    FE --> MLT
+    MLT --> RD
+    RD --> Redis
+    Redis --> RD
+    
+    TR --> NT
+    
+    classDef ids fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#000
+    classDef ml fill:#4ecdc4,stroke:#333,stroke-width:2px,color:#000
+    classDef siem fill:#45b7d1,stroke:#333,stroke-width:2px,color:#000
+    classDef stream fill:#96ceb4,stroke:#333,stroke-width:2px,color:#000
+    classDef traffic fill:#feca57,stroke:#333,stroke-width:2px,color:#000
+    
+    class S,EVE ids
+    class FE,MLT,RD,Redis ml
+    class ES,KB siem
+    class LS stream
+    class TR traffic
+```
 
 ### 📦 Services
 
@@ -71,6 +160,7 @@ The Suricata ML-IDS implements a hybrid detection approach combining signature-b
 | **ML Trainer** | 8002 | Decision Tree + k-NN model training |
 | **Real-time Detector** | 8080 | Ensemble predictions (<100ms) |
 | **Traffic Replay** | 8003 | Network traffic simulation |
+| **Log Shipper** | - | Real-time eve.json → Elasticsearch streaming |
 | **Elasticsearch** | 9200 | Search and analytics engine (ELK Stack) |
 | **Kibana** | 5601 | SIEM visualization and dashboards |
 | **Redis** | 6379 | Caching and message queuing |
@@ -79,19 +169,142 @@ The Suricata ML-IDS implements a hybrid detection approach combining signature-b
 
 The ML pipeline transforms raw network data into actionable threat intelligence through multiple stages:
 
-![ML Pipeline](docs/imgs/The%20ML%20pipeline%20transforms%20raw%20network%20data%20into%20actionable%20threat%20intelligence%20through%20multiple%20stages.png)
+```mermaid
+flowchart LR
+    subgraph "📥 Input"
+        PCAP[("PCAP Files<br/>Network Data")]
+        RT[("Real-time<br/>Traffic")]
+    end
+    
+    subgraph "🔧 Feature Extraction"
+        FE[("Feature Extractor<br/>25+ Features")]
+        CSV[("CSV Dataset<br/>Network Features")]
+    end
+    
+    subgraph "🧠 ML Training"
+        MLT[("ML Trainer<br/>Port 8002")]
+        DT[("Decision Tree<br/>Model")]
+        KNN[("k-NN<br/>Model")]
+        ENS[("Ensemble<br/>Model")]
+    end
+    
+    subgraph "⚡ Real-time Detection"
+        RD[("Real-time Detector<br/>Port 8080")]
+        PRED[("Threat Prediction<br/>18ms latency")]
+    end
+    
+    subgraph "💾 Storage & Cache"
+        Redis[("Redis<br/>Cache")]
+        Models[("Model Storage<br/>joblib")]
+    end
+    
+    PCAP --> FE
+    RT --> FE
+    FE --> CSV
+    CSV --> MLT
+    MLT --> DT
+    MLT --> KNN
+    MLT --> ENS
+    DT --> Models
+    KNN --> Models
+    ENS --> Models
+    Models --> RD
+    RD --> PRED
+    Redis --> RD
+    RD --> Redis
+    
+    classDef input fill:#e8f5e8,stroke:#333,stroke-width:2px,color:#000
+    classDef extract fill:#fff2cc,stroke:#333,stroke-width:2px,color:#000
+    classDef train fill:#dae8fc,stroke:#333,stroke-width:2px,color:#000
+    classDef detect fill:#f8cecc,stroke:#333,stroke-width:2px,color:#000
+    classDef storage fill:#e1d5e7,stroke:#333,stroke-width:2px,color:#000
+    
+    class PCAP,RT input
+    class FE,CSV extract
+    class MLT,DT,KNN,ENS train
+    class RD,PRED detect
+    class Redis,Models storage
+```
 
 ## 🔄 Data Flow Architecture
 
 Understanding how data flows through the system from ingestion to threat detection:
 
-![Data Flow Architecture](docs/imgs/Understanding%20how%20data%20flows%20through%20the%20system%20from%20ingestion%20to%20threat%20detection.png)
+```mermaid
+sequenceDiagram
+    participant NT as 🌐 Network Traffic
+    participant S as 🔍 Suricata IDS
+    participant EVE as 📄 eve.json
+    participant LS as 📡 Log Shipper
+    participant ES as 🔎 Elasticsearch
+    participant FE as 🔧 Feature Extractor
+    participant RD as ⚡ Real-time Detector
+    participant KB as 📊 Kibana
+    
+    Note over NT,KB: Real-time Network Monitoring & ML Detection
+    
+    NT->>S: Raw network packets
+    S->>EVE: JSON events (alerts, flows, stats)
+    EVE->>LS: Real-time file monitoring
+    LS->>ES: Streaming ingestion
+    
+    NT->>FE: PCAP analysis
+    FE->>RD: 25+ extracted features
+    RD->>RD: ML ensemble prediction (18ms)
+    RD->>ES: Detection results
+    
+    ES->>KB: SIEM visualization
+    
+    Note over S,ES: Signature-based + ML hybrid detection
+    Note over LS: Direct streaming replaces manual import
+    Note over RD: Sub-100ms real-time classification
+```
 
 ## 🎯 API Interaction Flow
 
 How external applications interact with the ML-IDS services:
 
-![API Interaction Flow](docs/imgs/How%20external%20applications%20interact%20with%20the%20ML-IDS%20services.png)
+```mermaid
+flowchart TB
+    subgraph "🌐 External Applications"
+        CLIENT[("Security Analyst<br/>Dashboard")]
+        API[("External API<br/>Integration")]
+        SIEM[("SIEM Platform<br/>Integration")]
+    end
+    
+    subgraph "🔌 API Gateway Layer"
+        FE_API[("Feature Extractor<br/>:8001/extract")]
+        ML_API[("ML Trainer<br/>:8002/train")]
+        RT_API[("Real-time Detector<br/>:8080/predict")]
+        TR_API[("Traffic Replay<br/>:8003/generate")]
+    end
+    
+    subgraph "💾 Data Layer"
+        ES_API[("Elasticsearch<br/>:9200/_search")]
+        KB_API[("Kibana<br/>:5601/dashboard")]
+        REDIS_API[("Redis Cache<br/>:6379")]
+    end
+    
+    CLIENT --> RT_API
+    CLIENT --> KB_API
+    API --> FE_API
+    API --> ML_API
+    API --> RT_API
+    SIEM --> ES_API
+    
+    RT_API --> REDIS_API
+    FE_API --> ML_API
+    ML_API --> RT_API
+    TR_API --> FE_API
+    
+    classDef external fill:#e8f4f8,stroke:#333,stroke-width:2px,color:#000
+    classDef api fill:#fff2cc,stroke:#333,stroke-width:2px,color:#000
+    classDef data fill:#f8cecc,stroke:#333,stroke-width:2px,color:#000
+    
+    class CLIENT,API,SIEM external
+    class FE_API,ML_API,RT_API,TR_API api
+    class ES_API,KB_API,REDIS_API data
+```
 
 ## 🚀 Quick Start
 

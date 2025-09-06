@@ -15,18 +15,19 @@
 ✅ **Feature Extractor Service** - 25+ network features from PCAP files (Port 8001)  
 ✅ **ML Trainer Service** - 99.6% accuracy Decision Tree + k-NN + Ensemble (Port 8002)  
 ✅ **Real-time Detector Service** - <100ms latency ensemble predictions (Port 8080)  
-✅ **Traffic Replay Service** - Network simulation and synthetic attack generation (Port 8003)  
+✅ **Traffic Replay Service** - Network simulation and PCAP replay (Port 8003)  
 
 ### 📊 SIEM & Analytics
 ✅ **Elasticsearch Integration** - Search engine fully configured (Port 9200)  
 ✅ **Kibana Dashboards** - SIEM visualization interface (Port 5601)  
 ✅ **Redis Integration** - Caching and message queuing (Port 6379)  
+✅ **Log Shipper Service** - Real-time eve.json → Elasticsearch streaming  
 
 ### 🚀 Automation & Deployment
 ✅ **One-Command Deployment** - `./demo.sh demo` for complete system startup  
 ✅ **Setup Automation** - `./setup.sh` for environment preparation  
 ✅ **Demo Scenarios** - ML training, feature extraction, and real-time detection demos  
-✅ **Synthetic Data Generation** - Educational training datasets  
+✅ **ML Training Data** - Educational datasets for model training  
 
 ### 📚 Documentation & Education
 ✅ **Comprehensive README** - Complete usage guide and API documentation  
@@ -44,7 +45,8 @@
 
 ### Educational Value Delivered
 - **Comprehensive ML Pipeline**: Feature engineering → Training → Real-time detection
-- **Industry-Standard Tools**: Suricata, OpenSearch, scikit-learn, FastAPI
+- **Industry-Standard Tools**: Suricata, Elasticsearch, scikit-learn, FastAPI
+- **Real-time Streaming**: Direct eve.json → Elasticsearch integration
 - **Hands-on Learning**: Complete working system for experimentation
 - **Research Ready**: Comparative algorithm analysis and performance metrics
 
@@ -64,6 +66,7 @@
 
 ### SIEM Integration
 - Elasticsearch and Kibana dashboards for security monitoring
+- Real-time log streaming via custom log-shipper service
 - Log correlation across all services with ELK stack
 - Interactive threat investigation interface
 - Historical analysis and search capabilities

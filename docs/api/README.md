@@ -45,6 +45,16 @@ Key endpoints:
 - `GET /pcaps` - List available PCAP files
 - `GET /replay/{id}/status` - Replay status
 
+### 📡 Log Shipper Service
+**Port**: Internal  
+**Purpose**: Real-time streaming of eve.json logs to Elasticsearch
+
+Features:
+- Real-time file monitoring and processing
+- Direct Elasticsearch integration
+- Automatic index management
+- Production-ready log ingestion pipeline
+
 ## Quick Start
 
 ### Prerequisites
