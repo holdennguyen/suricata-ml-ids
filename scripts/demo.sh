@@ -108,13 +108,13 @@ start_services() {
     print_status "Starting Suricata ML-IDS services..."
     
     # Start services in dependency order
-    $COMPOSE_CMD up -d redis opensearch
+    $COMPOSE_CMD up -d redis elasticsearch
     
     print_status "Waiting for core services to initialize..."
     sleep 20
     
     # Start remaining services
-    $COMPOSE_CMD up -d opensearch-dashboards suricata feature-extractor ml-trainer realtime-detector traffic-replay
+    $COMPOSE_CMD up -d kibana suricata feature-extractor ml-trainer realtime-detector traffic-replay
     
     print_status "Waiting for all services to start..."
     sleep 30
@@ -329,8 +329,8 @@ show_status() {
         "feature-extractor:8001:/health"
         "ml-trainer:8002:/health"
         "realtime-detector:8080:/health"
-        "opensearch:9200:/_cluster/health"
-        "opensearch-dashboards:5601:/api/status"
+        "elasticsearch:9200:/_cluster/health"
+        "kibana:5601:/api/status"
     )
     
     for service_info in "${services[@]}"; do
@@ -377,7 +377,7 @@ run_complete_demo() {
     echo
     
     print_demo "Demo completed! Access points:"
-    echo "📊 OpenSearch Dashboards: http://localhost:5601"
+    echo "📊 Kibana Dashboards: http://localhost:5601"
     echo "🔍 Real-time Detector API: http://localhost:8080/docs"
     echo "🧠 ML Trainer API: http://localhost:8002/docs"
     echo "⚙️  Feature Extractor API: http://localhost:8001/docs"
