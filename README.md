@@ -8,6 +8,45 @@
 
 A comprehensive Intrusion Detection System prototype that combines signature-based detection (Suricata) with machine learning capabilities for enhanced cybersecurity research and education.
 
+## 📋 Table of Contents
+
+- [🎯 Overview](#-overview)
+- [🏗️ System Architecture](#️-system-architecture)
+  - [📦 Services](#-services)
+- [🧠 Machine Learning Pipeline](#-machine-learning-pipeline)
+- [🔄 Data Flow Architecture](#-data-flow-architecture)
+- [🎯 API Interaction Flow](#-api-interaction-flow)
+- [🚀 Quick Start](#-quick-start)
+  - [Prerequisites](#prerequisites)
+  - [One-Command Deployment](#one-command-deployment)
+  - [Manual Setup](#manual-setup)
+- [🔴 Redis Integration & Architecture](#-redis-integration--architecture)
+  - [Core Functions of Redis](#core-functions-of-redis)
+  - [Redis Data Structures Used](#redis-data-structures-used)
+  - [Performance Benefits](#performance-benefits)
+  - [Redis Configuration for ML-IDS](#redis-configuration-for-ml-ids)
+  - [Monitoring Redis Performance](#monitoring-redis-performance)
+- [📊 Performance Metrics](#-performance-metrics)
+- [🛠️ Development](#️-development)
+  - [Cache-Busting Rebuilds](#cache-busting-rebuilds)
+  - [Individual Service Rebuild](#individual-service-rebuild)
+- [🔧 Features](#-features)
+  - [Feature Extraction](#feature-extraction)
+  - [Machine Learning](#machine-learning)
+  - [Real-time Detection](#real-time-detection)
+  - [SIEM Integration](#siem-integration)
+- [📊 API Documentation](#-api-documentation)
+  - [Feature Extractor Service](#feature-extractor-service-port-8001)
+  - [ML Trainer Service](#ml-trainer-service-port-8002)
+  - [Real-time Detector Service](#real-time-detector-service-port-8080)
+  - [Traffic Replay Service](#traffic-replay-service-port-8003)
+- [🏥 Monitoring & Health Checks](#-monitoring--health-checks)
+- [🔒 Security Considerations](#-security-considerations)
+- [📈 Scaling & Production](#-scaling--production)
+- [🎓 Educational Use](#-educational-use)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+
 ## 🎯 Overview
 
 This project implements a production-ready IDS architecture featuring:
@@ -414,21 +453,21 @@ Real-world performance benchmarks achieved by the system:
 ```mermaid
 flowchart TB
     subgraph "Training"
-        A[Decision Tree<br/>0.57s | 99.6%]
-        B[k-NN<br/>0.22s | 99.6%]
-        C[Ensemble<br/>0.92s | 100%]
+        A["Decision Tree<br/>0.57s - 99.6%"]
+        B["k-NN<br/>0.22s - 99.6%"]
+        C["Ensemble<br/>0.92s - 100%"]
     end
     
     subgraph "Detection"
-        D[Response<br/>89ms avg]
-        E[Throughput<br/>1000+ req/s]
-        F[Accuracy<br/>100%]
+        D["Response<br/>89ms avg"]
+        E["Throughput<br/>1000+ req/s"]
+        F["Accuracy<br/>100%"]
     end
     
     subgraph "Resources"
-        G[Memory<br/><2GB]
-        H[CPU<br/><50%]
-        I[Storage<br/><100MB]
+        G["Memory<br/>under 2GB"]
+        H["CPU<br/>under 50%"]
+        I["Storage<br/>under 100MB"]
     end
     
     classDef train fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
@@ -531,6 +570,217 @@ curl -X POST "http://localhost:8080/detect" \
 
 # WebSocket connection for live detection
 ws://localhost:8080/ws
+```
+
+## 🏥 Monitoring & Health Checks
+
+### Service Health Endpoints
+
+All services provide standardized health check endpoints:
+
+```bash
+# Check all services
+curl http://localhost:8001/health  # Feature Extractor
+curl http://localhost:8002/health  # ML Trainer
+curl http://localhost:8080/health  # Real-time Detector
+curl http://localhost:8003/health  # Traffic Replay
+
+# Expected response format
+{
+  "status": "healthy",
+  "service": "service-name",
+  "models_loaded": 3,
+  "redis_status": "connected"
+}
+```
+
+### System Monitoring
+
+```bash
+# Check Docker container status
+docker-compose ps
+
+# Monitor resource usage
+docker stats
+
+# View service logs
+docker-compose logs -f realtime-detector
+```
+
+## 🔒 Security Considerations
+
+### Development vs Production
+
+**Current Setup (Development)**:
+- No authentication required
+- All services exposed on localhost
+- Security plugins disabled
+- Debug logging enabled
+
+**Production Recommendations**:
+- Implement API key authentication
+- Use TLS/SSL for all communications
+- Enable rate limiting (already configured in Redis)
+- Restrict network access with firewall rules
+- Enable audit logging
+- Use secrets management for credentials
+
+### API Security
+
+```python
+# Example production security headers
+headers = {
+    "X-API-Key": "your-secure-api-key",
+    "Content-Type": "application/json",
+    "X-Request-ID": str(uuid.uuid4())
+}
+```
+
+## 📈 Scaling & Production
+
+### Horizontal Scaling
+
+The system is designed for horizontal scaling:
+
+```yaml
+# docker-compose.prod.yml example
+services:
+  realtime-detector:
+    deploy:
+      replicas: 3
+    environment:
+      - REDIS_URL=redis://redis-cluster:6379
+  
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    deploy:
+      replicas: 3
+```
+
+### Performance Optimization
+
+- **Redis Clustering**: For high availability
+- **Load Balancing**: Nginx/HAProxy for API endpoints
+- **Model Caching**: Persistent Redis storage
+- **Batch Processing**: Queue-based ML training
+- **Monitoring**: Prometheus + Grafana integration
+
+### Production Deployment
+
+```bash
+# Production deployment example
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# With environment-specific configs
+export ENVIRONMENT=production
+export REDIS_PASSWORD=secure-password
+export ML_MODEL_VERSION=v2.1.0
+```
+
+## 🎓 Educational Use
+
+### Learning Objectives
+
+This project teaches:
+
+1. **Machine Learning in Cybersecurity**
+   - Feature engineering from network data
+   - Ensemble model techniques
+   - Real-time inference optimization
+
+2. **System Architecture**
+   - Microservices design patterns
+   - Docker containerization
+   - API design and documentation
+
+3. **Performance Engineering**
+   - Redis caching strategies
+   - Sub-100ms latency optimization
+   - Resource management
+
+4. **DevOps Practices**
+   - Infrastructure as Code
+   - Automated testing and deployment
+   - Monitoring and observability
+
+### Curriculum Integration
+
+**Computer Science Courses**:
+- CS 4XX: Network Security
+- CS 5XX: Machine Learning
+- CS 6XX: Distributed Systems
+
+**Hands-on Labs**:
+- Modify ML algorithms and compare performance
+- Implement new feature extraction techniques
+- Add custom attack detection rules
+- Scale the system for higher throughput
+
+### Research Applications
+
+- **Thesis Projects**: Novel ML approaches for IDS
+- **Publications**: Performance benchmarking studies
+- **Competitions**: Cybersecurity challenge datasets
+- **Industry Collaboration**: Real-world deployment case studies
+
+## 🤝 Contributing
+
+### Development Setup
+
+```bash
+# Fork and clone the repository
+git clone https://github.com/your-username/suricata-ml-ids.git
+cd suricata-ml-ids
+
+# Create feature branch
+git checkout -b feature/your-feature-name
+
+# Make changes and test
+./scripts/demo.sh demo
+
+# Submit pull request
+git push origin feature/your-feature-name
+```
+
+### Contribution Guidelines
+
+1. **Code Quality**: Follow PEP 8 for Python code
+2. **Documentation**: Update README and API docs
+3. **Testing**: Ensure all tests pass
+4. **Performance**: Maintain <100ms detection latency
+5. **Security**: Follow security best practices
+
+### Areas for Contribution
+
+- **New ML Algorithms**: Implement additional models
+- **Feature Engineering**: Add new network features
+- **Visualization**: Enhance dashboard capabilities
+- **Performance**: Optimize detection speed
+- **Documentation**: Improve educational content
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### Third-Party Components
+
+- **Suricata**: GPL v2 License
+- **OpenSearch**: Apache 2.0 License
+- **Redis**: BSD 3-Clause License
+- **Python Libraries**: Various open-source licenses
+
+### Citation
+
+If you use this project in academic research, please cite:
+
+```bibtex
+@misc{suricata-ml-ids,
+  title={Suricata ML-IDS: Machine Learning Enhanced Intrusion Detection System},
+  author={Your Name},
+  year={2024},
+  url={https://github.com/your-username/suricata-ml-ids}
+}
 ```
 
 ## 🧪 Demo Scenarios
