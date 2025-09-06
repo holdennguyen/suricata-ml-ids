@@ -125,7 +125,10 @@ class DetectorEngine:
         """Get prediction and confidence from a single model"""
         try:
             # Get prediction
-            prediction = model.predict(feature_vector)[0]
+            raw_prediction = model.predict(feature_vector)[0]
+            
+            # Convert numeric prediction to string label
+            prediction = self._convert_prediction_to_label(raw_prediction)
             
             # Get confidence/probability if available
             confidence = 0.5  # Default confidence
@@ -142,6 +145,23 @@ class DetectorEngine:
         except Exception as e:
             logger.warning(f"Error getting model prediction: {str(e)}")
             return "unknown", 0.0
+    
+    def _convert_prediction_to_label(self, prediction) -> str:
+        """Convert numeric prediction to string label"""
+        try:
+            # Convert to int first in case it's a numpy type
+            pred_int = int(prediction)
+            
+            # Map predictions to meaningful labels
+            label_map = {
+                0: "normal",
+                1: "attack"
+            }
+            
+            return label_map.get(pred_int, "unknown")
+            
+        except (ValueError, TypeError):
+            return "unknown"
     
     def _calculate_ensemble_prediction(
         self, 

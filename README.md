@@ -157,10 +157,11 @@ cd suricata-ml-ids
 - **Feature Importance**: Explainable AI insights
 
 ### Real-time Detection
-- **Sub-100ms Latency**: Production-ready performance
-- **WebSocket API**: Live threat streaming
-- **Confidence Scoring**: Probabilistic predictions
-- **Alert Integration**: Suricata signature correlation
+- **Sub-100ms Latency**: Production-ready performance (8-70ms measured)
+- **Ensemble Predictions**: Combines Decision Tree, k-NN, and Ensemble models
+- **Confidence Scoring**: Probabilistic predictions with threat scores
+- **String Labels**: Returns "normal", "attack", or "unknown" predictions
+- **Model Loading**: Automatically loads trained models from ML Trainer
 
 ### SIEM Integration
 - **OpenSearch Dashboards**: Interactive visualizations
@@ -203,8 +204,8 @@ curl -X POST http://localhost:8002/evaluate \
 
 ### Real-time Detector Service (Port 8080)
 ```bash
-# Detect threats
-curl -X POST http://localhost:8080/detect \
+# Real-time threat detection
+curl -X POST "http://localhost:8080/detect" \
   -H "Content-Type: application/json" \
   -d '{
     "features": {
