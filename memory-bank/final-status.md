@@ -18,12 +18,12 @@
 | **ML Trainer** | ✅ Running | 8002 | API responding |
 | **Real-time Detector** | ✅ Running | 8080 | API responding |
 | **Traffic Replay** | ✅ Running | 8003 | Container healthy |
-| **OpenSearch** | ✅ Running | 9201 | Service healthy |
-| **OpenSearch Dashboards** | ✅ Running | 5602 | Service starting |
+| **Elasticsearch** | ✅ Running | 9200 | GREEN cluster status |
+| **Kibana** | ✅ Running | 5601 | Dashboard functional |
 | **Redis** | ✅ Running | 6379 | Service healthy |
 
 #### **Performance Targets Met**
-- **Real-time Detection**: <1ms latency (Target: <100ms) ✅ **EXCEEDED**
+- **Real-time Detection**: 14-23ms latency (Target: <100ms) ✅ **EXCEEDED**
 - **Service Architecture**: Production-ready microservices ✅
 - **One-Command Deployment**: `./demo.sh demo` working ✅
 - **API Documentation**: FastAPI auto-generated docs available ✅
@@ -61,7 +61,7 @@ curl -X POST http://localhost:8080/detect \
   -H "Content-Type: application/json" \
   -d '{"features": {"total_packets": 150.0, "tcp_ratio": 0.8}}'
 
-# Response: <1ms processing time ✅
+# Response: 14-23ms processing time ✅
 ```
 
 ### **ML Training API**
@@ -79,8 +79,8 @@ curl -X POST http://localhost:8001/extract \
 ```
 
 ### **SIEM Access**
-- **OpenSearch Dashboards**: http://localhost:5602
-- **OpenSearch API**: http://localhost:9201
+- **Kibana Dashboards**: http://localhost:5601
+- **Elasticsearch API**: http://localhost:9200
 
 ## 🎯 **SUCCESS METRICS ACHIEVED**
 
@@ -126,7 +126,7 @@ cd suricata-ml-ids
 # - Real-time Detector: http://localhost:8080/docs
 # - ML Trainer: http://localhost:8002/docs  
 # - Feature Extractor: http://localhost:8001/docs
-# - OpenSearch Dashboards: http://localhost:5602
+# - Kibana Dashboards: http://localhost:5601
 ```
 
 ## 🏆 **FINAL ASSESSMENT**
@@ -146,7 +146,7 @@ cd suricata-ml-ids
 - ✅ **Further Development** and customization
 
 ### **Outstanding Achievement**
-- **Sub-millisecond Detection**: Achieved <1ms vs 100ms target
+- **Excellent Detection Speed**: Achieved 14-23ms vs 100ms target
 - **Complete Microservices**: All 6 services operational
 - **Production Architecture**: Docker-based, scalable, monitored
 - **Educational Value**: Comprehensive learning platform

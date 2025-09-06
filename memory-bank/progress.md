@@ -37,8 +37,8 @@
 
 ### Data & Analytics
 - [x] **Traffic Replay Service** - Network simulation capabilities
-- [x] **OpenSearch Integration** - SIEM log storage and search
-- [x] **OpenSearch Dashboards** - Security visualization interface
+- [x] **Elasticsearch Integration** - SIEM log storage and search (ELK Stack)
+- [x] **Kibana Dashboards** - Security visualization interface
 - [x] **Redis Service** - Caching and message queuing
 - [x] **Synthetic Data Generation** - Educational training datasets
 
@@ -104,7 +104,8 @@
 - **Network Configuration**: Proper port mapping and security
 
 ### Access Points Configured
-- **OpenSearch Dashboards**: http://localhost:5601 - SIEM interface
+- **Kibana Dashboards**: http://localhost:5601 - SIEM interface
+- **Elasticsearch API**: http://localhost:9200 - Search and analytics
 - **Real-time Detector**: http://localhost:8080 - Live detection API
 - **ML Trainer**: http://localhost:8002 - Model training interface
 - **Feature Extractor**: http://localhost:8001 - PCAP processing API

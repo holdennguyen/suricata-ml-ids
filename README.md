@@ -188,7 +188,7 @@ sequenceDiagram
     participant FE as Feature Extractor
     participant ML as ML Trainer
     participant RD as Real-time Detector
-    participant OS as OpenSearch
+    participant ES as Elasticsearch
     participant D as Dashboard
     
     Note over T,D: Initial Setup & Training Phase
@@ -263,7 +263,7 @@ flowchart TD
 ### Prerequisites
 - Docker Engine 20.10+
 - Docker Compose 2.0+
-- 8GB+ RAM (for OpenSearch)
+- 8GB+ RAM (for Elasticsearch)
 - 20GB+ disk space
 
 ### One-Command Deployment
@@ -639,7 +639,7 @@ Configure Kibana Watcher for automated alerts:
 }
 ```
 
-
+ 
 ### SIEM Integration
 - **Kibana Dashboards**: Interactive visualizations and analytics
 - **Custom Dashboards**: IDS-specific monitoring and alerting
@@ -929,7 +929,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Third-Party Components
 
 - **Suricata**: GPL v2 License
-- **OpenSearch**: Apache 2.0 License
+- **Elasticsearch**: Elastic License 2.0
 - **Redis**: BSD 3-Clause License
 - **Python Libraries**: Various open-source licenses
 
@@ -1043,7 +1043,7 @@ suricata-ml-ids/
 1. **New ML Algorithm**: Extend `ml_trainer.py`
 2. **Custom Features**: Modify `feature_engine.py`
 3. **Detection Rules**: Update Suricata rules
-4. **Dashboards**: Add OpenSearch visualizations
+4. **Dashboards**: Add Kibana visualizations
 
 ### Testing
 ```bash
@@ -1060,7 +1060,7 @@ python -m pytest services/*/tests/
 ## 🚨 Security Considerations
 
 ### Production Deployment
-- Enable OpenSearch security plugin
+- Enable Elasticsearch security features
 - Use TLS for all API communications
 - Implement proper authentication
 - Regular security updates
@@ -1086,7 +1086,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - [Suricata](https://suricata.io/) - Network intrusion detection
-- [OpenSearch](https://opensearch.org/) - Search and analytics
+- [Elasticsearch](https://www.elastic.co/) - Search and analytics
 - [scikit-learn](https://scikit-learn.org/) - Machine learning library
 - [FastAPI](https://fastapi.tiangolo.com/) - Modern web framework
 - [Docker](https://www.docker.com/) - Containerization platform

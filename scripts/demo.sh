@@ -348,7 +348,7 @@ show_status() {
     done
     
     # Check Redis
-    if redis-cli -h localhost -p 6379 ping > /dev/null 2>&1; then
+    if docker exec redis redis-cli ping > /dev/null 2>&1; then
         print_success "redis is healthy"
     else
         print_error "redis is not responding"
