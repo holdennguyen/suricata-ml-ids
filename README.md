@@ -54,88 +54,13 @@ This project implements a production-ready IDS architecture featuring:
 | **Memory Usage** | <2GB total | <4GB | ✅ **Efficient** |
 | **Throughput** | 1000+ req/sec | 500+ req/sec | ✅ **High** |
 
-```mermaid
-flowchart TB
-    subgraph Training["🏋️ Training Performance"]
-        A["Decision Tree<br/>0.83s - 99.6%"]
-        B["k-NN<br/>0.23s - 99.6%"]
-        C["Ensemble<br/>1.18s - 100%"]
-    end
-    
-    subgraph Detection["⚡ Detection Performance"]
-        D["Response Time<br/>14-20ms avg"]
-        E["Throughput<br/>1000+ req/s"]
-        F["Accuracy<br/>100%"]
-    end
-    
-    subgraph Resources["💻 Resource Usage"]
-        G["Memory<br/>under 2GB"]
-        H["CPU<br/>under 50%"]
-        I["Storage<br/>under 100MB"]
-    end
-    
-    %% Styling
-    classDef trainStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef detectStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
-    classDef resourceStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
-    
-    class A,B,C trainStyle
-    class D,E,F detectStyle
-    class G,H,I resourceStyle
-```
+![Performance Metrics](docs/imgs/Real-world%20benchmarks%20achieved%20by%20the%20system.png)
 
 ## 🏗️ System Architecture
 
 The Suricata ML-IDS implements a hybrid detection approach combining signature-based and machine learning techniques:
 
-```mermaid
-flowchart TB
-    subgraph Network["🌐 Network Layer"]
-        Traffic["Network Traffic"]
-        Replay["Traffic Replay<br/>Port 8003"]
-    end
-    
-    subgraph Detection["🛡️ Detection Layer"]
-        Suricata["Suricata IDS<br/>Signatures"]
-        FE["Feature Extractor<br/>Port 8001"]
-    end
-    
-    subgraph ML["🧠 ML Pipeline"]
-        Trainer["ML Trainer<br/>Port 8002"]
-        Models[("Trained Models")]
-        RD["Real-time Detector<br/>Port 8080"]
-    end
-    
-    subgraph SIEM["📊 SIEM & Storage"]
-        ES["Elasticsearch<br/>Port 9200"]
-        KB["Kibana<br/>Port 5601"]
-        Redis[("Redis Cache<br/>Port 6379")]
-    end
-    
-    %% Data Flow
-    Traffic --> Suricata
-    Traffic --> FE
-    Replay --> Traffic
-    Suricata --> ES
-    FE --> Trainer
-    Trainer --> Models
-    Models --> RD
-    FE --> RD
-    RD --> ES
-    RD --> Redis
-    ES --> KB
-    
-    %% Styling
-    classDef networkStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
-    classDef detectionStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
-    classDef mlStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
-    classDef siemStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    
-    class Traffic,Replay networkStyle
-    class Suricata,FE detectionStyle
-    class Trainer,Models,RD mlStyle
-    class ES,KB,Redis siemStyle
-```
+![System Architecture](docs/imgs/The%20Suricata%20ML-IDS%20implements%20a%20hybrid%20detection%20approach%20combining%20signature-based%20and%20machine%20learning%20techniques.png)
 
 ### 📦 Services
 
@@ -154,143 +79,19 @@ flowchart TB
 
 The ML pipeline transforms raw network data into actionable threat intelligence through multiple stages:
 
-```mermaid
-flowchart LR
-    subgraph Input["📥 Data Input"]
-        A["PCAP Files"]
-        G["Live Network Traffic"]
-    end
-    
-    subgraph Processing["⚙️ Feature Processing"]
-        B["Feature Extractor"]
-        C["25+ Network Features"]
-        H["Real-time Features"]
-    end
-    
-    subgraph Models["🧠 ML Models"]
-        D["Decision Tree<br/>99.6% Accuracy"]
-        E["k-NN Algorithm<br/>99.6% Accuracy"]  
-        F["Ensemble Model<br/>100% Accuracy"]
-    end
-    
-    subgraph Output["📊 Detection Output"]
-        I["Prediction Engine<br/>18ms Response"]
-        J["Classification<br/>normal/attack"]
-        K["SIEM Integration<br/>Elasticsearch"]
-    end
-    
-    %% Data flow connections
-    A --> B
-    B --> C
-    G --> H
-    
-    C --> D
-    C --> E
-    C --> F
-    
-    H --> I
-    D --> I
-    E --> I
-    F --> I
-    
-    I --> J
-    J --> K
-    
-    %% Styling for better GitHub display
-    classDef inputStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
-    classDef processStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    classDef mlStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
-    classDef outputStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
-    
-    class A,G inputStyle
-    class B,C,H processStyle
-    class D,E,F,I mlStyle
-    class J,K outputStyle
-```
+![ML Pipeline](docs/imgs/The%20ML%20pipeline%20transforms%20raw%20network%20data%20into%20actionable%20threat%20intelligence%20through%20multiple%20stages.png)
 
 ## 🔄 Data Flow Architecture
 
 Understanding how data flows through the system from ingestion to threat detection:
 
-```mermaid
-sequenceDiagram
-    participant T as 🌐 Network Traffic
-    participant S as 🛡️ Suricata IDS
-    participant FE as ⚙️ Feature Extractor
-    participant ML as 🧠 ML Trainer
-    participant RD as 🚨 Real-time Detector
-    participant ES as 🔍 Elasticsearch
-    participant D as 📊 Kibana Dashboard
-    
-    Note over T,D: 🏗️ Initial Setup & Training Phase
-    T->>S: Raw network packets
-    T->>FE: PCAP files for analysis
-    S->>ES: Signature-based alerts
-    FE->>FE: Extract 25+ network features
-    FE->>ML: Feature vectors with labels
-    ML->>ML: Train ensemble models
-    ML->>RD: Deploy trained models
-    
-    Note over T,D: ⚡ Real-time Detection Phase
-    T->>FE: Live network traffic
-    FE->>RD: Real-time feature vectors
-    RD->>RD: Ensemble prediction (18ms)
-    RD->>ES: Threat detection alerts
-    S->>ES: Signature match alerts
-    ES->>D: Visualization data
-    
-    Note over RD: 📈 Performance Metrics
-    Note right of RD: • 100% Ensemble Accuracy<br/>• 18ms Average Response<br/>• String Label Classification
-```
+![Data Flow Architecture](docs/imgs/Understanding%20how%20data%20flows%20through%20the%20system%20from%20ingestion%20to%20threat%20detection.png)
 
 ## 🎯 API Interaction Flow
 
 How external applications interact with the ML-IDS services:
 
-```mermaid
-flowchart TD
-    subgraph Clients["👥 Client Applications"]
-        CLI["CLI Tools"]
-        WEB["Web Applications"]
-        SIEM["SIEM Platforms"]
-    end
-    
-    subgraph APIs["🔌 ML-IDS APIs"]
-        FE["Feature Extractor<br/>Port 8001"]
-        ML["ML Trainer<br/>Port 8002"]
-        RT["Real-time Detector<br/>Port 8080"]
-        TR["Traffic Replay<br/>Port 8003"]
-    end
-    
-    subgraph Responses["📄 JSON Responses"]
-        R1["Feature Vectors<br/>{25+ attributes}"]
-        R2["Training Results<br/>{accuracy, models}"]
-        R3["Threat Predictions<br/>{normal/attack}"]
-        R4["System Status<br/>{health, metrics}"]
-    end
-    
-    %% Client to API connections
-    CLI --> FE
-    CLI --> ML
-    CLI --> RT
-    WEB --> RT
-    SIEM --> RT
-    
-    %% API to Response connections
-    FE --> R1
-    ML --> R2
-    RT --> R3
-    TR --> R4
-    
-    %% Styling for better GitHub display
-    classDef clientStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
-    classDef apiStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
-    classDef responseStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
-    
-    class CLI,WEB,SIEM clientStyle
-    class FE,ML,RT,TR apiStyle
-    class R1,R2,R3,R4 responseStyle
-```
+![API Interaction Flow](docs/imgs/How%20external%20applications%20interact%20with%20the%20ML-IDS%20services.png)
 
 ## 🚀 Quick Start
 
