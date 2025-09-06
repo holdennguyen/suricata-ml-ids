@@ -1,0 +1,208 @@
+version: '3.8'
+
+services:
+  # Suricata IDS Service
+  suricata:
+    build:
+      context: ./services/suricata
+      dockerfile: Dockerfile
+    container_name: suricata-ids
+    volumes:
+      - ./data/pcaps:/var/log/suricata/pcaps:ro
+      - ./data/logs:/var/log/suricata
+      - ./services/suricata/rules:/etc/suricata/rules
+      - ./services/suricata/config:/etc/suricata
+    networks:
+      - ids-network
+    cap_add:
+      - NET_ADMIN
+      - SYS_NICE
+    depends_on:
+      - opensearch
+    healthcheck:
+      test: ["CMD", "suricata", "--build-info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Feature Extractor Service
+  feature-extractor:
+    build:
+      context: ./services/feature-extractor
+      dockerfile: Dockerfile
+    container_name: feature-extractor
+    volumes:
+      - ./data/pcaps:/app/pcaps:ro
+      - ./data/datasets:/app/datasets
+      - ./data/logs:/app/logs:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    networks:
+      - ids-network
+    depends_on:
+      - suricata
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ML Trainer Service  
+  ml-trainer:
+    build:
+      context: ./services/ml-trainer
+      dockerfile: Dockerfile
+    container_name: ml-trainer
+    volumes:
+      - ./data/datasets:/app/datasets:ro
+      - ./data/models:/app/models
+      - ./data/results:/app/results
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - ML_ACCURACY_TARGET=0.90
+    networks:
+      - ids-network
+    depends_on:
+      - feature-extractor
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8002/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Real-time Detector Service
+  realtime-detector:
+    build:
+      context: ./services/realtime-detector
+      dockerfile: Dockerfile
+    container_name: realtime-detector
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data/models:/app/models:ro
+      - ./data/logs:/app/logs:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - LATENCY_TARGET_MS=100
+      - REDIS_URL=redis://redis:6379
+    networks:
+      - ids-network
+    depends_on:
+      - ml-trainer
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # Traffic Replay Service
+  traffic-replay:
+    build:
+      context: ./services/traffic-replay
+      dockerfile: Dockerfile
+    container_name: traffic-replay
+    volumes:
+      - ./data/pcaps:/app/pcaps
+      - ./data/synthetic:/app/synthetic
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - TARGET_INTERFACE=eth0
+    networks:
+      - ids-network
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8003/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # OpenSearch Service
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: opensearch
+    environment:
+      - cluster.name=ids-cluster
+      - node.name=opensearch-node1
+      - discovery.seed_hosts=opensearch-node1
+      - cluster.initial_cluster_manager_nodes=opensearch-node1
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+      - ./services/opensearch/config:/usr/share/opensearch/config
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    networks:
+      - ids-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # OpenSearch Dashboards
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.11.0
+    container_name: opensearch-dashboards
+    ports:
+      - "5601:5601"
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
+    volumes:
+      - ./services/opensearch/dashboards:/usr/share/opensearch-dashboards/config
+    networks:
+      - ids-network
+    depends_on:
+      - opensearch
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis for message queuing and caching
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - ids-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  opensearch-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  ids-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

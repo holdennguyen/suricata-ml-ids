@@ -1,0 +1,176 @@
+# Suricata Configuration for ML-IDS
+%YAML 1.1
+---
+
+# Network interfaces
+af-packet:
+  - interface: eth0
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+
+# Logging configuration
+outputs:
+  # EVE JSON log for ML processing
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: /var/log/suricata/eve.json
+      pcap-file: false
+      community-id: true
+      community-id-seed: 0
+      types:
+        - alert:
+            payload: yes
+            payload-buffer-size: 4kb
+            payload-printable: yes
+            packet: yes
+            metadata: yes
+        - http:
+            extended: yes
+        - dns:
+            query: yes
+            answer: yes
+        - tls:
+            extended: yes
+        - files:
+            force-magic: no
+        - smtp:
+        - ssh
+        - stats:
+            totals: yes
+            threads: no
+            deltas: no
+        - flow
+        - netflow
+
+  # Fast log for quick alerts
+  - fast:
+      enabled: yes
+      filename: /var/log/suricata/fast.log
+      append: yes
+
+  # Stats log
+  - stats:
+      enabled: yes
+      filename: /var/log/suricata/stats.log
+      append: yes
+      totals: yes
+      threads: no
+
+# Rule configuration
+default-rule-path: /etc/suricata/rules
+rule-files:
+  - suricata.rules
+  - emerging-threats.rules
+  - custom-ml.rules
+
+# Classification and reference config
+classification-file: /etc/suricata/classification.config
+reference-config-file: /etc/suricata/reference.config
+
+# Performance tuning
+max-pending-packets: 1024
+runmode: autofp
+autofp-scheduler: active-packets
+
+# Detection engine settings
+detect:
+  profile: medium
+  custom-values:
+    toclient-groups: 3
+    toserver-groups: 25
+  sgh-mpm-context: auto
+  inspection-recursion-limit: 3000
+
+# App layer protocols
+app-layer:
+  protocols:
+    http:
+      enabled: yes
+      memcap: 64mb
+    tls:
+      enabled: yes
+      detection-ports:
+        dp: 443
+    dns:
+      tcp:
+        enabled: yes
+        detection-ports:
+          dp: 53
+      udp:
+        enabled: yes
+        detection-ports:
+          dp: 53
+    smtp:
+      enabled: yes
+      inspection-limit:
+        content: 100kb
+    ssh:
+      enabled: yes
+
+# Defragmentation settings
+defrag:
+  memcap: 32mb
+  hash-size: 65536
+  trackers: 65535
+  max-frags: 65535
+  prealloc: yes
+  timeout: 60
+
+# Flow settings
+flow:
+  memcap: 128mb
+  hash-size: 65536
+  prealloc: 10000
+  emergency-recovery: 30
+  managers: 1
+  recyclers: 1
+
+# Stream settings
+stream:
+  memcap: 64mb
+  checksum-validation: yes
+  inline: auto
+  reassembly:
+    memcap: 256mb
+    depth: 1mb
+    toserver-chunk-size: 2560
+    toclient-chunk-size: 2560
+    randomize-chunk-size: yes
+
+# Host table
+host:
+  hash-size: 4096
+  prealloc: 1000
+  memcap: 32mb
+
+# Logging level
+logging:
+  default-log-level: info
+  default-output-filter:
+  outputs:
+  - console:
+      enabled: yes
+  - file:
+      enabled: yes
+      level: info
+      filename: /var/log/suricata/suricata.log
+
+# Engine analysis and profiling
+engine-analysis:
+  rules-fast-pattern: yes
+  rules: yes
+
+# Unix socket for management
+unix-command:
+  enabled: yes
+  filename: /var/run/suricata/suricata-command.socket
+
+# Stats configuration
+stats:
+  enabled: yes
+  interval: 8
+  decoder-events: true
+  decoder-events-prefix: "decoder.event"
+  stream-events: false

@@ -1,0 +1,44 @@
+# Custom ML-IDS Rules for Educational Purposes
+# These rules are designed to work with the ML feature extraction
+
+# Network Reconnaissance Detection
+alert icmp any any -> $HOME_NET any (msg:"ICMP Ping Sweep Detected"; itype:8; threshold:type both, track by_src, count 10, seconds 60; classtype:network-scan; sid:1000001; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"TCP Port Scan Detected"; flags:S; threshold:type both, track by_src, count 20, seconds 60; classtype:network-scan; sid:1000002; rev:1;)
+alert udp any any -> $HOME_NET any (msg:"UDP Port Scan Detected"; threshold:type both, track by_src, count 20, seconds 60; classtype:network-scan; sid:1000003; rev:1;)
+
+# Brute Force Attacks
+alert tcp any any -> $HOME_NET 22 (msg:"SSH Brute Force Attempt"; flow:to_server,established; content:"SSH"; offset:0; depth:3; threshold:type both, track by_src, count 5, seconds 300; classtype:attempted-admin; sid:1000004; rev:1;)
+alert tcp any any -> $HOME_NET 21 (msg:"FTP Brute Force Attempt"; flow:to_server,established; content:"USER"; threshold:type both, track by_src, count 10, seconds 300; classtype:attempted-admin; sid:1000005; rev:1;)
+alert tcp any any -> $HOME_NET [80,443] (msg:"HTTP Auth Brute Force"; flow:to_server,established; content:"Authorization:"; http_header; threshold:type both, track by_src, count 10, seconds 300; classtype:web-application-attack; sid:1000006; rev:1;)
+
+# Web Application Attacks
+alert tcp any any -> $HOME_NET [80,443] (msg:"SQL Injection Attempt"; flow:to_server,established; content:"SELECT"; http_uri; nocase; pcre:"/select.+from/i"; classtype:web-application-attack; sid:1000007; rev:1;)
+alert tcp any any -> $HOME_NET [80,443] (msg:"XSS Attempt Detected"; flow:to_server,established; content:"<script"; http_uri; nocase; classtype:web-application-attack; sid:1000008; rev:1;)
+alert tcp any any -> $HOME_NET [80,443] (msg:"Directory Traversal Attempt"; flow:to_server,established; content:"../"; http_uri; classtype:web-application-attack; sid:1000009; rev:1;)
+
+# Command Injection
+alert tcp any any -> $HOME_NET [80,443] (msg:"Command Injection Attempt"; flow:to_server,established; pcre:"/(\||;|&|`|\$\()/"; http_uri; classtype:web-application-attack; sid:1000010; rev:1;)
+
+# Malware Communication
+alert tcp $HOME_NET any -> any any (msg:"Suspicious Outbound Connection"; flow:to_server,established; threshold:type both, track by_src, count 100, seconds 60; classtype:trojan-activity; sid:1000011; rev:1;)
+alert dns any any -> any any (msg:"Suspicious DNS Query"; content:".tk"; nocase; classtype:trojan-activity; sid:1000012; rev:1;)
+
+# Data Exfiltration
+alert tcp $HOME_NET any -> any [80,443] (msg:"Large Data Upload"; flow:to_server,established; dsize:>10000; threshold:type both, track by_src, count 5, seconds 60; classtype:policy-violation; sid:1000013; rev:1;)
+alert tcp $HOME_NET any -> any 21 (msg:"FTP Data Exfiltration"; flow:to_server,established; dsize:>5000; classtype:policy-violation; sid:1000014; rev:1;)
+
+# Protocol Anomalies
+alert tcp any any -> $HOME_NET any (msg:"TCP SYN Flood"; flags:S; threshold:type both, track by_src, count 100, seconds 10; classtype:denial-of-service; sid:1000015; rev:1;)
+alert ip any any -> $HOME_NET any (msg:"IP Fragment Attack"; fragbits:M+; classtype:bad-unknown; sid:1000016; rev:1;)
+
+# Tunneling Detection
+alert tcp any any -> any 443 (msg:"DNS over HTTPS Tunneling"; flow:to_server,established; content:"dns-query"; http_uri; classtype:policy-violation; sid:1000017; rev:1;)
+alert icmp any any -> any any (msg:"ICMP Tunneling"; itype:8; dsize:>100; classtype:policy-violation; sid:1000018; rev:1;)
+
+# Cryptocurrency Mining
+alert tcp any any -> any any (msg:"Cryptocurrency Mining Pool Connection"; content:"stratum"; classtype:policy-violation; sid:1000019; rev:1;)
+
+# Educational Synthetic Attacks
+alert tcp any any -> $HOME_NET any (msg:"ML Training - Synthetic Attack Pattern 1"; content:"ML_ATTACK_SIG_1"; classtype:trojan-activity; sid:1000020; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"ML Training - Synthetic Attack Pattern 2"; content:"ML_ATTACK_SIG_2"; classtype:trojan-activity; sid:1000021; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"ML Training - Synthetic Attack Pattern 3"; content:"ML_ATTACK_SIG_3"; classtype:trojan-activity; sid:1000022; rev:1;)
