@@ -25,43 +25,34 @@ The Suricata ML-IDS implements a hybrid detection approach combining signature-b
 graph TB
     subgraph "Network Layer"
         Traffic[Network Traffic]
-        Replay[Traffic Replay Service<br/>Port 8003]
+        Replay[Traffic Replay<br/>:8003]
     end
     
     subgraph "Detection Layer"
-        Suricata[Suricata IDS<br/>Signature Detection]
-        FE[Feature Extractor<br/>Port 8001<br/>25+ Features]
+        Suricata[Suricata IDS<br/>Signatures]
+        FE[Feature Extractor<br/>:8001]
     end
     
     subgraph "ML Pipeline"
-        Trainer[ML Trainer<br/>Port 8002<br/>Decision Tree + k-NN]
-        Models[(Trained Models)]
-        RD[Real-time Detector<br/>Port 8080<br/>Ensemble Predictions]
+        Trainer[ML Trainer<br/>:8002]
+        Models[(Models)]
+        RD[Real-time Detector<br/>:8080]
     end
     
     subgraph "SIEM & Storage"
-        OS[OpenSearch<br/>Port 9201<br/>Log Storage]
-        OSD[OpenSearch Dashboards<br/>Port 5602<br/>Visualization]
-        Redis[(Redis Cache<br/>Port 6379)]
-    end
-    
-    subgraph "Data Flow"
-        PCAP[PCAP Files]
-        Features[Feature Vectors]
-        Alerts[Security Alerts]
+        OS[OpenSearch<br/>:9201]
+        OSD[Dashboards<br/>:5602]
+        Redis[(Redis<br/>:6379)]
     end
     
     Traffic --> Suricata
+    Traffic --> FE
     Replay --> Traffic
-    Suricata --> FE
-    PCAP --> FE
-    FE --> Features
-    Features --> Trainer
+    Suricata --> OS
+    FE --> Trainer
     Trainer --> Models
     Models --> RD
-    Features --> RD
-    RD --> Alerts
-    Suricata --> OS
+    FE --> RD
     RD --> OS
     OS --> OSD
     RD --> Redis
@@ -72,7 +63,7 @@ graph TB
     
     class Suricata,FE,Replay serviceBox
     class Trainer,RD,Models mlBox
-    class OS,OSD,Redis,PCAP,Features,Alerts dataBox
+    class OS,OSD,Redis dataBox
 ```
 
 ### 📦 Services
@@ -93,41 +84,31 @@ graph TB
 The ML pipeline transforms raw network data into actionable threat intelligence through multiple stages:
 
 ```mermaid
-graph LR
-    subgraph "Data Ingestion"
-        A[Raw Network Traffic<br/>PCAP Files] --> B[Feature Extractor<br/>Scapy + Analysis]
-    end
+flowchart LR
+    A[PCAP Files] --> B[Feature Extractor]
+    B --> C[25+ Features]
     
-    subgraph "Feature Engineering"
-        B --> C[25+ Network Features<br/>• Packet counts<br/>• Protocol ratios<br/>• Timing analysis<br/>• Port patterns<br/>• Payload entropy]
-    end
+    C --> D[Decision Tree<br/>99.6% Acc]
+    C --> E[k-NN<br/>99.6% Acc]  
+    C --> F[Ensemble<br/>100% Acc]
     
-    subgraph "Model Training"
-        C --> D[Decision Tree<br/>99.6% Accuracy<br/>0.57s Training]
-        C --> E[k-NN Classifier<br/>99.6% Accuracy<br/>0.22s Training]
-        C --> F[Ensemble Model<br/>100% Accuracy<br/>0.92s Training]
-    end
+    G[Live Traffic] --> H[Real-time<br/>Features]
+    H --> I[Prediction<br/>89ms]
     
-    subgraph "Real-time Inference"
-        G[Live Traffic] --> H[Feature Processing<br/>Real-time]
-        H --> I[Ensemble Prediction<br/>89ms Latency]
-        D --> I
-        E --> I
-        F --> I
-    end
+    D --> I
+    E --> I
+    F --> I
     
-    subgraph "Output"
-        I --> J[Threat Classification<br/>• normal<br/>• attack<br/>• unknown]
-        J --> K[SIEM Integration<br/>OpenSearch]
-    end
+    I --> J[Classification<br/>normal/attack]
+    J --> K[SIEM<br/>OpenSearch]
     
-    classDef dataNode fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef mlNode fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef outputNode fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef data fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef ml fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef output fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     
-    class A,C,G,H dataNode
-    class D,E,F,I mlNode
-    class J,K outputNode
+    class A,C,G,H data
+    class D,E,F,I ml
+    class J,K output
 ```
 
 ## 🔄 Data Flow Architecture
@@ -170,45 +151,45 @@ sequenceDiagram
 How external applications interact with the ML-IDS services:
 
 ```mermaid
-graph TD
-    subgraph "Client Applications"
-        CLI[Command Line<br/>curl/wget]
-        WEB[Web Applications<br/>JavaScript]
-        SIEM[SIEM Tools<br/>Splunk/ELK]
+flowchart TD
+    subgraph "Clients"
+        CLI[CLI Tools]
+        WEB[Web Apps]
+        SIEM[SIEM Tools]
     end
     
-    subgraph "API Gateway Layer"
-        FE_API[Feature Extractor API<br/>POST /extract<br/>Port 8001]
-        ML_API[ML Trainer API<br/>POST /train<br/>Port 8002]
-        RT_API[Real-time Detector API<br/>POST /detect<br/>Port 8080]
-        TR_API[Traffic Replay API<br/>POST /replay<br/>Port 8003]
+    subgraph "APIs"
+        FE[Feature API<br/>:8001]
+        ML[Trainer API<br/>:8002]
+        RT[Detector API<br/>:8080]
+        TR[Replay API<br/>:8003]
     end
     
-    subgraph "Response Formats"
-        JSON_FE[Feature Vector<br/>JSON Array]
-        JSON_ML[Training Results<br/>Accuracy Metrics]
-        JSON_RT[Threat Prediction<br/>normal/attack/unknown]
-        JSON_TR[Replay Status<br/>Success/Error]
+    subgraph "Responses"
+        R1[Features JSON]
+        R2[Training JSON]
+        R3[Prediction JSON]
+        R4[Status JSON]
     end
     
-    CLI --> FE_API
-    CLI --> ML_API
-    CLI --> RT_API
-    WEB --> RT_API
-    SIEM --> RT_API
+    CLI --> FE
+    CLI --> ML
+    CLI --> RT
+    WEB --> RT
+    SIEM --> RT
     
-    FE_API --> JSON_FE
-    ML_API --> JSON_ML
-    RT_API --> JSON_RT
-    TR_API --> JSON_TR
+    FE --> R1
+    ML --> R2
+    RT --> R3
+    TR --> R4
     
-    classDef clientNode fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef apiNode fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef responseNode fill:#fff8e1,stroke:#f9a825,stroke-width:2px
+    classDef client fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef api fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef response fill:#fff8e1,stroke:#f9a825,stroke-width:2px
     
-    class CLI,WEB,SIEM clientNode
-    class FE_API,ML_API,RT_API,TR_API apiNode
-    class JSON_FE,JSON_ML,JSON_RT,JSON_TR responseNode
+    class CLI,WEB,SIEM client
+    class FE,ML,RT,TR api
+    class R1,R2,R3,R4 response
 ```
 
 ## 🚀 Quick Start
@@ -291,36 +272,32 @@ cd suricata-ml-ids
 Real-world performance benchmarks achieved by the system:
 
 ```mermaid
-graph TB
-    subgraph "ML Training Performance"
-        A[Decision Tree<br/>⚡ 0.57s training<br/>🎯 99.6% accuracy]
-        B[k-NN Classifier<br/>⚡ 0.22s training<br/>🎯 99.6% accuracy]
-        C[Ensemble Model<br/>⚡ 0.92s training<br/>🎯 100% accuracy]
+flowchart TB
+    subgraph "Training"
+        A[Decision Tree<br/>0.57s | 99.6%]
+        B[k-NN<br/>0.22s | 99.6%]
+        C[Ensemble<br/>0.92s | 100%]
     end
     
-    subgraph "Real-time Detection"
-        D[Response Time<br/>⚡ 89ms average<br/>🎯 <100ms target]
-        E[Throughput<br/>⚡ 1000+ req/sec<br/>🎯 Production ready]
-        F[Accuracy<br/>⚡ 100% ensemble<br/>🎯 Perfect classification]
+    subgraph "Detection"
+        D[Response<br/>89ms avg]
+        E[Throughput<br/>1000+ req/s]
+        F[Accuracy<br/>100%]
     end
     
-    subgraph "System Resources"
-        G[Memory Usage<br/>⚡ <2GB per service<br/>🎯 Lightweight]
-        H[CPU Usage<br/>⚡ <50% per core<br/>🎯 Efficient]
-        I[Storage<br/>⚡ <100MB models<br/>🎯 Compact]
+    subgraph "Resources"
+        G[Memory<br/><2GB]
+        H[CPU<br/><50%]
+        I[Storage<br/><100MB]
     end
     
-    A --> D
-    B --> D
-    C --> F
+    classDef train fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef detect fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef resource fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     
-    classDef performanceBox fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef metricsBox fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef resourceBox fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    
-    class A,B,C performanceBox
-    class D,E,F metricsBox
-    class G,H,I resourceBox
+    class A,B,C train
+    class D,E,F detect
+    class G,H,I resource
 ```
 
 ### SIEM Integration
