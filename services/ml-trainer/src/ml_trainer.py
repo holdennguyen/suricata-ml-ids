@@ -67,7 +67,14 @@ class MLTrainer:
             }
             
             if hyperparameters:
-                default_params.update(hyperparameters)
+                # Ensure all hyperparameter values are lists for GridSearchCV
+                processed_params = {}
+                for key, value in hyperparameters.items():
+                    if not isinstance(value, list):
+                        processed_params[key] = [value]
+                    else:
+                        processed_params[key] = value
+                default_params.update(processed_params)
             
             # Create base model
             dt = DecisionTreeClassifier(random_state=self.random_state)
@@ -174,7 +181,14 @@ class MLTrainer:
             }
             
             if hyperparameters:
-                default_params.update(hyperparameters)
+                # Ensure all hyperparameter values are lists for GridSearchCV
+                processed_params = {}
+                for key, value in hyperparameters.items():
+                    if not isinstance(value, list):
+                        processed_params[key] = [value]
+                    else:
+                        processed_params[key] = value
+                default_params.update(processed_params)
             
             # Create base model
             knn = KNeighborsClassifier()

@@ -137,8 +137,9 @@ async def train_models(
         
         # Save models
         model_files = {}
+        dataset_stem = Path(request.dataset_filename).stem
         for algorithm, result in training_results.items():
-            model_filename = f"{request.dataset_filename.stem}_{algorithm}_model.joblib"
+            model_filename = f"{dataset_stem}_{algorithm}_model.joblib"
             model_path = MODELS_DIR / model_filename
             
             await ml_trainer.save_model(result["model"], model_path)
@@ -159,19 +160,23 @@ async def train_models(
         # Check if accuracy target is met
         target_met = best_accuracy >= ACCURACY_TARGET
         
-        response = TrainingResponse(
-            dataset_filename=request.dataset_filename,
-            algorithms_trained=list(training_results.keys()),
-            training_results=training_results,
-            model_files=model_files,
-            best_algorithm=best_algorithm,
-            best_accuracy=best_accuracy,
-            accuracy_target_met=target_met,
-            training_time=training_time
-        )
+        try:
+            response = TrainingResponse(
+                dataset_filename=request.dataset_filename,
+                algorithms_trained=list(training_results.keys()),
+                training_results=training_results,
+                model_files=model_files,
+                best_algorithm=best_algorithm,
+                best_accuracy=best_accuracy,
+                accuracy_target_met=target_met,
+                training_time=training_time
+            )
+        except Exception as e:
+            logger.error(f"Error creating TrainingResponse: {str(e)}")
+            raise
         
         # Save training results
-        results_filename = f"{request.dataset_filename.stem}_training_results.json"
+        results_filename = f"{dataset_stem}_training_results.json"
         results_path = RESULTS_DIR / results_filename
         
         with open(results_path, 'w') as f:

@@ -166,7 +166,7 @@ demo_ml_training() {
     # Check if synthetic data exists
     if [ ! -f "data/datasets/synthetic_network_traffic.csv" ]; then
         print_warning "Synthetic data not found. Generating..."
-        cd data && python3 generate_synthetic_data.py && cd ..
+        (cd data && python3 generate_synthetic_data.py)
     fi
     
     # Train models using API
@@ -180,8 +180,8 @@ demo_ml_training() {
            "target_column": "label",
            "test_size": 0.2,
            "hyperparameters": {
-             "decision_tree": {"max_depth": 20},
-             "knn": {"n_neighbors": 5}
+             "decision_tree": {"max_depth": [20]},
+             "knn": {"n_neighbors": [5]}
            }
          }' | jq '.'
     
