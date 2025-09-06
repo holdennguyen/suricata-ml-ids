@@ -156,30 +156,56 @@ The ML pipeline transforms raw network data into actionable threat intelligence 
 
 ```mermaid
 flowchart LR
-    A[PCAP Files] --> B[Feature Extractor]
-    B --> C[25+ Features]
+    subgraph Input["📥 Data Input"]
+        A["PCAP Files"]
+        G["Live Network Traffic"]
+    end
     
-    C --> D[Decision Tree<br/>99.6% Acc]
-    C --> E[k-NN<br/>99.6% Acc]  
-    C --> F[Ensemble<br/>100% Acc]
+    subgraph Processing["⚙️ Feature Processing"]
+        B["Feature Extractor"]
+        C["25+ Network Features"]
+        H["Real-time Features"]
+    end
     
-    G[Live Traffic] --> H[Real-time<br/>Features]
-    H --> I[Prediction<br/>89ms]
+    subgraph Models["🧠 ML Models"]
+        D["Decision Tree<br/>99.6% Accuracy"]
+        E["k-NN Algorithm<br/>99.6% Accuracy"]  
+        F["Ensemble Model<br/>100% Accuracy"]
+    end
     
+    subgraph Output["📊 Detection Output"]
+        I["Prediction Engine<br/>18ms Response"]
+        J["Classification<br/>normal/attack"]
+        K["SIEM Integration<br/>Elasticsearch"]
+    end
+    
+    %% Data flow connections
+    A --> B
+    B --> C
+    G --> H
+    
+    C --> D
+    C --> E
+    C --> F
+    
+    H --> I
     D --> I
     E --> I
     F --> I
     
-    I --> J[Classification<br/>normal/attack]
-        J --> K[SIEM<br/>Elasticsearch]
+    I --> J
+    J --> K
     
-    classDef data fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef ml fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef output fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    %% Styling for better GitHub display
+    classDef inputStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef processStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef mlStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef outputStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
     
-    class A,C,G,H data
-    class D,E,F,I ml
-    class J,K output
+    class A,G inputStyle
+    class B,C,H processStyle
+    class D,E,F,I mlStyle
+    class J,K outputStyle
 ```
 
 ## 🔄 Data Flow Architecture
@@ -188,33 +214,33 @@ Understanding how data flows through the system from ingestion to threat detecti
 
 ```mermaid
 sequenceDiagram
-    participant T as Network Traffic
-    participant S as Suricata IDS
-    participant FE as Feature Extractor
-    participant ML as ML Trainer
-    participant RD as Real-time Detector
-    participant ES as Elasticsearch
-    participant D as Dashboard
+    participant T as 🌐 Network Traffic
+    participant S as 🛡️ Suricata IDS
+    participant FE as ⚙️ Feature Extractor
+    participant ML as 🧠 ML Trainer
+    participant RD as 🚨 Real-time Detector
+    participant ES as 🔍 Elasticsearch
+    participant D as 📊 Kibana Dashboard
     
-    Note over T,D: Initial Setup & Training Phase
-    T->>S: Raw packets
-    T->>FE: PCAP files
-    S->>OS: Signature alerts
-    FE->>FE: Extract 25+ features
-    FE->>ML: Feature vectors + labels
+    Note over T,D: 🏗️ Initial Setup & Training Phase
+    T->>S: Raw network packets
+    T->>FE: PCAP files for analysis
+    S->>ES: Signature-based alerts
+    FE->>FE: Extract 25+ network features
+    FE->>ML: Feature vectors with labels
     ML->>ML: Train ensemble models
     ML->>RD: Deploy trained models
     
-    Note over T,D: Real-time Detection Phase
-    T->>FE: Live traffic
-    FE->>RD: Real-time features
-    RD->>RD: Ensemble prediction (89ms)
-    RD->>ES: Threat alerts
-    S->>ES: Signature matches
+    Note over T,D: ⚡ Real-time Detection Phase
+    T->>FE: Live network traffic
+    FE->>RD: Real-time feature vectors
+    RD->>RD: Ensemble prediction (18ms)
+    RD->>ES: Threat detection alerts
+    S->>ES: Signature match alerts
     ES->>D: Visualization data
     
-    Note over RD: Performance Metrics
-    Note right of RD: • 100% Ensemble Accuracy<br/>• 89ms Response Time<br/>• String Label Format
+    Note over RD: 📈 Performance Metrics
+    Note right of RD: • 100% Ensemble Accuracy<br/>• 18ms Average Response<br/>• String Label Classification
 ```
 
 ## 🎯 API Interaction Flow
@@ -223,44 +249,47 @@ How external applications interact with the ML-IDS services:
 
 ```mermaid
 flowchart TD
-    subgraph "Clients"
-        CLI[CLI Tools]
-        WEB[Web Apps]
-        SIEM[SIEM Tools]
+    subgraph Clients["👥 Client Applications"]
+        CLI["CLI Tools"]
+        WEB["Web Applications"]
+        SIEM["SIEM Platforms"]
     end
     
-    subgraph "APIs"
-        FE[Feature API<br/>:8001]
-        ML[Trainer API<br/>:8002]
-        RT[Detector API<br/>:8080]
-        TR[Replay API<br/>:8003]
+    subgraph APIs["🔌 ML-IDS APIs"]
+        FE["Feature Extractor<br/>Port 8001"]
+        ML["ML Trainer<br/>Port 8002"]
+        RT["Real-time Detector<br/>Port 8080"]
+        TR["Traffic Replay<br/>Port 8003"]
     end
     
-    subgraph "Responses"
-        R1[Features JSON]
-        R2[Training JSON]
-        R3[Prediction JSON]
-        R4[Status JSON]
+    subgraph Responses["📄 JSON Responses"]
+        R1["Feature Vectors<br/>{25+ attributes}"]
+        R2["Training Results<br/>{accuracy, models}"]
+        R3["Threat Predictions<br/>{normal/attack}"]
+        R4["System Status<br/>{health, metrics}"]
     end
     
+    %% Client to API connections
     CLI --> FE
     CLI --> ML
     CLI --> RT
     WEB --> RT
     SIEM --> RT
     
+    %% API to Response connections
     FE --> R1
     ML --> R2
     RT --> R3
     TR --> R4
     
-    classDef client fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef api fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef response fill:#fff8e1,stroke:#f9a825,stroke-width:2px
+    %% Styling for better GitHub display
+    classDef clientStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef apiStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef responseStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
     
-    class CLI,WEB,SIEM client
-    class FE,ML,RT,TR api
-    class R1,R2,R3,R4 response
+    class CLI,WEB,SIEM clientStyle
+    class FE,ML,RT,TR apiStyle
+    class R1,R2,R3,R4 responseStyle
 ```
 
 ## 🚀 Quick Start
