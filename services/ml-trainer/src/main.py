@@ -137,42 +137,69 @@ async def train_models(
         
         # Save models
         model_files = {}
-        dataset_stem = Path(request.dataset_filename).stem
-        for algorithm, result in training_results.items():
-            model_filename = f"{dataset_stem}_{algorithm}_model.joblib"
-            model_path = MODELS_DIR / model_filename
+        try:
+            dataset_stem = Path(request.dataset_filename).stem
+            logger.info(f"Dataset stem: {dataset_stem}")
             
-            await ml_trainer.save_model(result["model"], model_path)
-            model_files[algorithm] = model_filename
-            
-            logger.info(f"Saved {algorithm} model to: {model_path}")
+            for algorithm, result in training_results.items():
+                model_filename = f"{dataset_stem}_{algorithm}_model.joblib"
+                model_path = MODELS_DIR / model_filename
+                
+                logger.info(f"Saving model: {algorithm} -> {model_path}")
+                await ml_trainer.save_model(result["model"], model_path)
+                model_files[algorithm] = model_filename
+                
+                logger.info(f"Saved {algorithm} model to: {model_path}")
+        except Exception as e:
+            logger.error(f"Error in model saving section: {str(e)}")
+            raise
         
         # Calculate overall training time
         training_time = time.time() - start_time
         
         # Find best performing model
-        best_algorithm = max(
-            training_results.keys(),
-            key=lambda k: training_results[k]["accuracy"]
-        )
-        best_accuracy = training_results[best_algorithm]["accuracy"]
+        try:
+            logger.info(f"Training results keys: {list(training_results.keys())}")
+            best_algorithm = max(
+                training_results.keys(),
+                key=lambda k: training_results[k]["accuracy"]
+            )
+            best_accuracy = training_results[best_algorithm]["accuracy"]
+            logger.info(f"Best algorithm: {best_algorithm}, accuracy: {best_accuracy}")
+        except Exception as e:
+            logger.error(f"Error finding best algorithm: {str(e)}")
+            raise
         
         # Check if accuracy target is met
         target_met = best_accuracy >= ACCURACY_TARGET
         
+        # Create simplified response to avoid serialization issues
         try:
-            response = TrainingResponse(
-                dataset_filename=request.dataset_filename,
-                algorithms_trained=list(training_results.keys()),
-                training_results=training_results,
-                model_files=model_files,
-                best_algorithm=best_algorithm,
-                best_accuracy=best_accuracy,
-                accuracy_target_met=target_met,
-                training_time=training_time
-            )
+            # Create clean training results without model objects for response
+            clean_results = {}
+            for alg, result in training_results.items():
+                clean_results[alg] = {
+                    "accuracy": result["accuracy"],
+                    "precision": result.get("precision", 0),
+                    "recall": result.get("recall", 0),
+                    "f1_score": result.get("f1_score", 0),
+                    "training_time": result.get("training_time", 0)
+                }
+            
+            response_data = {
+                "dataset_filename": request.dataset_filename,
+                "algorithms_trained": list(training_results.keys()),
+                "training_results": clean_results,
+                "model_files": model_files,
+                "best_algorithm": best_algorithm,
+                "best_accuracy": best_accuracy,
+                "accuracy_target_met": target_met,
+                "training_time": training_time,
+                "message": f"Training completed successfully. Best accuracy: {best_accuracy:.4f} ({best_algorithm})"
+            }
+            logger.info("Response data created successfully")
         except Exception as e:
-            logger.error(f"Error creating TrainingResponse: {str(e)}")
+            logger.error(f"Error creating response data: {str(e)}")
             raise
         
         # Save training results
@@ -181,11 +208,10 @@ async def train_models(
         
         with open(results_path, 'w') as f:
             import json
-            json.dump(response.dict(), f, indent=2, default=str)
+            json.dump(response_data, f, indent=2, default=str)
         
-        logger.info(f"Training completed. Best accuracy: {best_accuracy:.4f} ({best_algorithm})")
-        
-        return response
+        logger.info(f"Training completed successfully. Models saved: {list(model_files.keys())}")
+        return JSONResponse(content=response_data)
         
     except Exception as e:
         logger.error(f"Error training models: {str(e)}")
@@ -230,7 +256,8 @@ async def evaluate_model(
         )
         
         # Generate detailed report
-        report_filename = f"{model_filename.stem}_evaluation_report.json"
+        model_stem = Path(model_filename).stem
+        report_filename = f"{model_stem}_evaluation_report.json"
         report_path = RESULTS_DIR / report_filename
         
         with open(report_path, 'w') as f:

@@ -1,0 +1,22 @@
+# Basic Suricata Rules for ML-IDS Educational Demo
+# These rules demonstrate common network security patterns
+
+# HTTP-based attacks
+alert http any any -> any any (msg:"HTTP SQL Injection Attempt"; flow:established,to_server; content:"union"; nocase; content:"select"; nocase; distance:0; within:100; classtype:web-application-attack; sid:1000001; rev:1;)
+alert http any any -> any any (msg:"HTTP XSS Attempt"; flow:established,to_server; content:"<script"; nocase; classtype:web-application-attack; sid:1000002; rev:1;)
+alert http any any -> any any (msg:"HTTP Directory Traversal"; flow:established,to_server; content:"../"; classtype:web-application-attack; sid:1000003; rev:1;)
+
+# DNS-based attacks
+alert dns any any -> any any (msg:"DNS Tunneling Attempt"; dns.query; content:"|00|"; classtype:policy-violation; sid:1000004; rev:1;)
+alert dns any any -> any any (msg:"Suspicious DNS Query Length"; dsize:>100; classtype:policy-violation; sid:1000005; rev:1;)
+
+# Network scanning
+alert tcp any any -> any any (msg:"TCP Port Scan"; flags:S,12; threshold: type both, track by_src, count 10, seconds 60; classtype:attempted-recon; sid:1000006; rev:1;)
+alert icmp any any -> any any (msg:"ICMP Ping Sweep"; itype:8; threshold: type both, track by_src, count 10, seconds 60; classtype:attempted-recon; sid:1000007; rev:1;)
+
+# Malware communication
+alert tcp any any -> any any (msg:"Suspicious Outbound Connection"; flow:established,to_server; content:"GET"; http_method; content:"exe"; http_uri; nocase; classtype:trojan-activity; sid:1000008; rev:1;)
+alert tcp any any -> any any (msg:"Potential C2 Communication"; flow:established; dsize:<100; threshold: type both, track by_src, count 50, seconds 300; classtype:trojan-activity; sid:1000009; rev:1;)
+
+# Educational examples for ML feature extraction
+alert tcp any any -> any any (msg:"High Frequency Small Packets"; dsize:<64; threshold: type both, track by_src, count 100, seconds 60; classtype:policy-violation; sid:1000010; rev:1;)

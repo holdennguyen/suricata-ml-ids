@@ -33,18 +33,9 @@
 ################################################################
 
 ## GC configuration
-8-13:-XX:+UseConcMarkSweepGC
-8-13:-XX:CMSInitiatingOccupancyFraction=75
-8-13:-XX:+UseCMSInitiatingOccupancyOnly
-
-## G1GC Configuration
-# NOTE: G1 GC is only supported on JDK version 10 or later
-# to use G1GC, uncomment the next two lines and comment the CMS settings above.
-14-:-XX:+UseG1GC
-14-:-XX:G1HeapRegionSize=32m
-14-:-XX:+UseG1GC
-14-:-XX:+UnlockExperimentalVMOptions
-14-:-XX:+UseG1GC
+# Use G1GC for better performance
+-XX:+UseG1GC
+-XX:G1HeapRegionSize=32m
 
 # JVM temporary directory
 -Djava.io.tmpdir=${OPENSEARCH_TMPDIR}
@@ -76,8 +67,6 @@
 
 # JDK 9+ GC logging
 9-:-Xlog:gc*,gc+age=trace,safepoint:logs/gc.log:utctime,pid,tid,level,tags
-9-:-XX:+UnlockExperimentalVMOptions
-9-:-XX:+UseEpsilonGC
 
 # due to internationalization enhancements in JDK 9 OpenSearch
 # needs to set the provider to COMPAT otherwise time/date
