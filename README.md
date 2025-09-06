@@ -56,31 +56,32 @@ This project implements a production-ready IDS architecture featuring:
 
 ```mermaid
 flowchart TB
-    subgraph "Training"
+    subgraph Training["🏋️ Training Performance"]
         A["Decision Tree<br/>0.83s - 99.6%"]
         B["k-NN<br/>0.23s - 99.6%"]
         C["Ensemble<br/>1.18s - 100%"]
     end
     
-    subgraph "Detection"
-        D["Response<br/>14-20ms avg"]
+    subgraph Detection["⚡ Detection Performance"]
+        D["Response Time<br/>14-20ms avg"]
         E["Throughput<br/>1000+ req/s"]
         F["Accuracy<br/>100%"]
     end
     
-    subgraph "Resources"
+    subgraph Resources["💻 Resource Usage"]
         G["Memory<br/>under 2GB"]
         H["CPU<br/>under 50%"]
         I["Storage<br/>under 100MB"]
     end
     
-    classDef train fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef detect fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef resource fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    %% Styling
+    classDef trainStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef detectStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef resourceStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
     
-    class A,B,C train
-    class D,E,F detect
-    class G,H,I resource
+    class A,B,C trainStyle
+    class D,E,F detectStyle
+    class G,H,I resourceStyle
 ```
 
 ## 🏗️ System Architecture
@@ -88,29 +89,30 @@ flowchart TB
 The Suricata ML-IDS implements a hybrid detection approach combining signature-based and machine learning techniques:
 
 ```mermaid
-graph TB
-    subgraph "Network Layer"
-        Traffic[Network Traffic]
-        Replay[Traffic Replay<br/>:8003]
+flowchart TB
+    subgraph Network["🌐 Network Layer"]
+        Traffic["Network Traffic"]
+        Replay["Traffic Replay<br/>Port 8003"]
     end
     
-    subgraph "Detection Layer"
-        Suricata[Suricata IDS<br/>Signatures]
-        FE[Feature Extractor<br/>:8001]
+    subgraph Detection["🛡️ Detection Layer"]
+        Suricata["Suricata IDS<br/>Signatures"]
+        FE["Feature Extractor<br/>Port 8001"]
     end
     
-    subgraph "ML Pipeline"
-        Trainer[ML Trainer<br/>:8002]
-        Models[(Models)]
-        RD[Real-time Detector<br/>:8080]
+    subgraph ML["🧠 ML Pipeline"]
+        Trainer["ML Trainer<br/>Port 8002"]
+        Models[("Trained Models")]
+        RD["Real-time Detector<br/>Port 8080"]
     end
     
-    subgraph "SIEM & Storage"
-        ES[Elasticsearch<br/>:9200]
-        KB[Kibana<br/>:5601]
-        Redis[(Redis<br/>:6379)]
+    subgraph SIEM["📊 SIEM & Storage"]
+        ES["Elasticsearch<br/>Port 9200"]
+        KB["Kibana<br/>Port 5601"]
+        Redis[("Redis Cache<br/>Port 6379")]
     end
     
+    %% Data Flow
     Traffic --> Suricata
     Traffic --> FE
     Replay --> Traffic
@@ -120,16 +122,19 @@ graph TB
     Models --> RD
     FE --> RD
     RD --> ES
-    ES --> KB
     RD --> Redis
+    ES --> KB
     
-    classDef serviceBox fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef dataBox fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef mlBox fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    %% Styling
+    classDef networkStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef detectionStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef mlStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef siemStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
     
-    class Suricata,FE,Replay serviceBox
-    class Trainer,RD,Models mlBox
-    class ES,KB,Redis dataBox
+    class Traffic,Replay networkStyle
+    class Suricata,FE detectionStyle
+    class Trainer,Models,RD mlStyle
+    class ES,KB,Redis siemStyle
 ```
 
 ### 📦 Services
@@ -976,18 +981,63 @@ If you use this project in academic research, please cite:
 ## 🔧 Configuration
 
 ### Environment Variables
+
+The system supports extensive configuration through environment variables. Copy `env.example` to `.env` and customize as needed:
+
 ```bash
-# ML Configuration
-ML_ACCURACY_TARGET=0.90
-LATENCY_TARGET_MS=100
+# Copy the example environment file
+cp env.example .env
 
-# Service URLs
-REDIS_URL=redis://redis:6379
-OPENSEARCH_URL=http://opensearch:9200
-
-# Logging
-LOG_LEVEL=INFO
+# Edit configuration as needed
+nano .env
 ```
+
+#### Key Configuration Sections:
+
+**🔧 Development Settings:**
+```bash
+CACHEBUST=1                    # Force Docker rebuild
+DEV_MODE=true                  # Enable development features
+```
+
+**🧠 Machine Learning:**
+```bash
+ML_ACCURACY_TARGET=0.90        # Minimum accuracy threshold
+LATENCY_TARGET_MS=100          # Maximum detection latency
+ML_ALGORITHMS=decision_tree,knn,ensemble
+```
+
+**📊 Elasticsearch & Kibana:**
+```bash
+ES_JAVA_OPTS=-Xms1g -Xmx1g     # Elasticsearch memory
+ELASTICSEARCH_CLUSTER_NAME=ids-cluster
+KIBANA_ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+```
+
+**🔴 Redis Configuration:**
+```bash
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_MAXMEMORY=256mb
+REDIS_MAXMEMORY_POLICY=allkeys-lru
+```
+
+**🛡️ Security & Performance:**
+```bash
+MAX_DETECTION_LATENCY_MS=100
+DETECTION_CONFIDENCE_THRESHOLD=0.8
+THREAT_SCORE_THRESHOLD=0.5
+BATCH_SIZE=1000
+```
+
+For a complete list of all available configuration options, see the `env.example` file which includes:
+- Development and debugging settings
+- ML model parameters and thresholds  
+- Elasticsearch and Kibana configuration
+- Redis caching and performance tuning
+- Security and TLS settings
+- Data paths and retention policies
+- Network and logging configuration
 
 ### Custom Rules
 Add custom Suricata rules in `services/suricata/rules/custom-ml.rules`:
