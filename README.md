@@ -40,8 +40,8 @@ graph TB
     end
     
     subgraph "SIEM & Storage"
-        OS[OpenSearch<br/>:9201]
-        OSD[Dashboards<br/>:5602]
+        OS[OpenSearch<br/>:9200]
+        OSD[Dashboards<br/>:5601]
         Redis[(Redis<br/>:6379)]
     end
     
@@ -75,8 +75,8 @@ graph TB
 | **ML Trainer** | 8002 | Decision Tree + k-NN model training |
 | **Real-time Detector** | 8080 | Ensemble predictions (<100ms) |
 | **Traffic Replay** | 8003 | Network traffic simulation |
-| **OpenSearch** | 9201 | Search and analytics engine |
-| **OpenSearch Dashboards** | 5602 | SIEM visualization interface |
+| **OpenSearch** | 9200 | Search and analytics engine |
+| **OpenSearch Dashboards** | 5601 | SIEM visualization interface |
 | **Redis** | 6379 | Caching and message queuing |
 
 ## 🧠 Machine Learning Pipeline
