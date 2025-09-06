@@ -26,6 +26,12 @@ A comprehensive Intrusion Detection System prototype that combines signature-bas
   - [Performance Benefits](#performance-benefits)
   - [Redis Configuration for ML-IDS](#redis-configuration-for-ml-ids)
   - [Monitoring Redis Performance](#monitoring-redis-performance)
+- [🔍 Elasticsearch & Kibana Integration](#-elasticsearch--kibana-integration)
+  - [Elasticsearch Setup](#elasticsearch-setup)
+  - [Kibana Dashboards](#kibana-dashboards)
+  - [Sample Elasticsearch Queries](#sample-elasticsearch-queries)
+  - [Data Ingestion Pipeline](#data-ingestion-pipeline)
+  - [Alerting and Notifications](#alerting-and-notifications)
 - [📊 Performance Metrics](#-performance-metrics)
 - [🛠️ Development](#️-development)
   - [Cache-Busting Rebuilds](#cache-busting-rebuilds)
@@ -79,21 +85,21 @@ graph TB
     end
     
     subgraph "SIEM & Storage"
-        OS[OpenSearch<br/>:9200]
-        OSD[Dashboards<br/>:5601]
+        ES[Elasticsearch<br/>:9200]
+        KB[Kibana<br/>:5601]
         Redis[(Redis<br/>:6379)]
     end
     
     Traffic --> Suricata
     Traffic --> FE
     Replay --> Traffic
-    Suricata --> OS
+    Suricata --> ES
     FE --> Trainer
     Trainer --> Models
     Models --> RD
     FE --> RD
-    RD --> OS
-    OS --> OSD
+    RD --> ES
+    ES --> KB
     RD --> Redis
     
     classDef serviceBox fill:#e1f5fe,stroke:#01579b,stroke-width:2px
@@ -102,7 +108,7 @@ graph TB
     
     class Suricata,FE,Replay serviceBox
     class Trainer,RD,Models mlBox
-    class OS,OSD,Redis dataBox
+    class ES,KB,Redis dataBox
 ```
 
 ### 📦 Services
@@ -114,8 +120,8 @@ graph TB
 | **ML Trainer** | 8002 | Decision Tree + k-NN model training |
 | **Real-time Detector** | 8080 | Ensemble predictions (<100ms) |
 | **Traffic Replay** | 8003 | Network traffic simulation |
-| **OpenSearch** | 9200 | Search and analytics engine |
-| **OpenSearch Dashboards** | 5601 | SIEM visualization interface |
+| **Elasticsearch** | 9200 | Search and analytics engine (ELK Stack) |
+| **Kibana** | 5601 | SIEM visualization and dashboards |
 | **Redis** | 6379 | Caching and message queuing |
 
 ## 🧠 Machine Learning Pipeline
@@ -139,7 +145,7 @@ flowchart LR
     F --> I
     
     I --> J[Classification<br/>normal/attack]
-    J --> K[SIEM<br/>OpenSearch]
+        J --> K[SIEM<br/>Elasticsearch]
     
     classDef data fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     classDef ml fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
@@ -177,9 +183,9 @@ sequenceDiagram
     T->>FE: Live traffic
     FE->>RD: Real-time features
     RD->>RD: Ensemble prediction (89ms)
-    RD->>OS: Threat alerts
-    S->>OS: Signature matches
-    OS->>D: Visualization data
+    RD->>ES: Threat alerts
+    S->>ES: Signature matches
+    ES->>D: Visualization data
     
     Note over RD: Performance Metrics
     Note right of RD: • 100% Ensemble Accuracy<br/>• 89ms Response Time<br/>• String Label Format
@@ -446,6 +452,172 @@ redis-cli SLOWLOG GET 10  # Check slow queries
 redis-cli --latency-history -i 1  # Monitor latency
 ```
 
+## 🔍 Elasticsearch & Kibana Integration
+
+### **Elasticsearch Setup**
+
+The system uses Elasticsearch 8.11.0 for log storage and analysis:
+
+```bash
+# Check Elasticsearch health
+curl http://localhost:9200/_cluster/health
+
+# View indices
+curl http://localhost:9200/_cat/indices?v
+
+# Search for threats
+curl -X GET "http://localhost:9200/suricata-*/_search" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": {
+      "match": {"event_type": "alert"}
+    }
+  }'
+```
+
+### **Kibana Dashboards**
+
+Access Kibana at: **http://localhost:5601**
+
+#### **Pre-configured Dashboards**
+
+1. **Security Overview Dashboard**
+   - Real-time threat detection metrics
+   - Attack type distribution
+   - ML model performance tracking
+   - Geographic threat mapping
+
+2. **ML Performance Dashboard**
+   - Model accuracy trends
+   - Detection latency monitoring
+   - Feature importance analysis
+   - False positive/negative rates
+
+3. **Network Traffic Dashboard**
+   - Protocol distribution
+   - Traffic volume analysis
+   - Anomaly detection patterns
+   - Connection flow visualization
+
+#### **Index Patterns to Create**
+
+```bash
+# Suricata alerts and events
+suricata-*
+
+# ML detection results
+ml-detections-*
+
+# API access logs
+api-logs-*
+
+# Performance metrics
+performance-*
+```
+
+### **Sample Elasticsearch Queries**
+
+#### **Find High-Confidence Threats**
+```json
+{
+  "query": {
+    "bool": {
+      "must": [
+        {"range": {"@timestamp": {"gte": "now-1h"}}},
+        {"term": {"prediction": "attack"}},
+        {"range": {"confidence": {"gte": 0.8}}}
+      ]
+    }
+  },
+  "sort": [{"@timestamp": {"order": "desc"}}]
+}
+```
+
+#### **ML Model Performance Analysis**
+```json
+{
+  "aggs": {
+    "avg_confidence": {"avg": {"field": "confidence"}},
+    "avg_processing_time": {"avg": {"field": "processing_time_ms"}},
+    "prediction_distribution": {
+      "terms": {"field": "prediction.keyword"}
+    },
+    "hourly_detections": {
+      "date_histogram": {
+        "field": "@timestamp",
+        "calendar_interval": "hour"
+      }
+    }
+  }
+}
+```
+
+#### **Top Attack Indicators**
+```json
+{
+  "aggs": {
+    "top_features": {
+      "terms": {"field": "suspicious_patterns.keyword", "size": 10}
+    },
+    "attack_sources": {
+      "terms": {"field": "source_ip.keyword", "size": 20}
+    }
+  }
+}
+```
+
+### **Data Ingestion Pipeline**
+
+The system automatically sends data to Elasticsearch:
+
+1. **Suricata Logs** → `suricata-YYYY.MM.DD` indices
+2. **ML Predictions** → `ml-detections-YYYY.MM.DD` indices  
+3. **API Logs** → `api-logs-YYYY.MM.DD` indices
+4. **Performance Metrics** → `performance-YYYY.MM.DD` indices
+
+### **Alerting and Notifications**
+
+Configure Kibana Watcher for automated alerts:
+
+```json
+{
+  "trigger": {
+    "schedule": {"interval": "1m"}
+  },
+  "input": {
+    "search": {
+      "request": {
+        "search_type": "query_then_fetch",
+        "indices": ["ml-detections-*"],
+        "body": {
+          "query": {
+            "bool": {
+              "must": [
+                {"range": {"@timestamp": {"gte": "now-1m"}}},
+                {"term": {"prediction": "attack"}},
+                {"range": {"confidence": {"gte": 0.9}}}
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "condition": {
+    "compare": {"ctx.payload.hits.total": {"gt": 0}}
+  },
+  "actions": {
+    "send_email": {
+      "email": {
+        "to": ["security@company.com"],
+        "subject": "High-Confidence Threat Detected",
+        "body": "{{ctx.payload.hits.total}} high-confidence threats detected in the last minute."
+      }
+    }
+  }
+}
+```
+
 ## 📊 Performance Metrics
 
 Real-world performance benchmarks achieved by the system:
@@ -480,10 +652,12 @@ flowchart TB
 ```
 
 ### SIEM Integration
-- **OpenSearch Dashboards**: Interactive visualizations
-- **Custom Dashboards**: IDS-specific monitoring
-- **Log Correlation**: Multi-source event analysis
-- **Search Interface**: Historical threat investigation
+- **Kibana Dashboards**: Interactive visualizations and analytics
+- **Custom Dashboards**: IDS-specific monitoring and alerting
+- **Log Correlation**: Multi-source event analysis with ELK Stack
+- **Search Interface**: Elasticsearch-powered threat investigation
+- **Real-time Monitoring**: Live threat detection and response
+- **Historical Analysis**: Long-term security trend analysis
 
 ## 📊 API Documentation
 

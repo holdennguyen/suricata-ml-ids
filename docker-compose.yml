@@ -18,7 +18,7 @@ services:
       - NET_ADMIN
       - SYS_NICE
     depends_on:
-      - opensearch
+      - elasticsearch
     healthcheck:
       test: ["CMD", "suricata", "--build-info"]
       interval: 30s
@@ -131,27 +131,21 @@ services:
       timeout: 10s
       retries: 3
 
-  # OpenSearch Service
-  opensearch:
-    image: opensearchproject/opensearch:2.11.0
-    container_name: opensearch
+  # Elasticsearch Service for SIEM and monitoring
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch
     environment:
-      - "DISABLE_INSTALL_DEMO_CONFIG=true"
-      - "DISABLE_SECURITY_PLUGIN=true"
-      - "discovery.type=single-node"
-      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - cluster.name=ids-cluster
+      - node.name=ids-node-1
     volumes:
-      - opensearch-data:/usr/share/opensearch/data
+      - elasticsearch-data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
-      - "9600:9600"
     networks:
       - ids-network
     healthcheck:
@@ -160,21 +154,20 @@ services:
       timeout: 10s
       retries: 5
 
-  # OpenSearch Dashboards
-  opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:2.11.0
-    container_name: opensearch-dashboards
+  # Kibana Dashboards for visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - xpack.security.enabled=false
+      - xpack.encryptedSavedObjects.encryptionKey=fhjskloppd678ehkdfdlliverpoolfcr
     ports:
       - "5601:5601"
-    environment:
-      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
-      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
-    volumes:
-      - ./services/opensearch/dashboards:/usr/share/opensearch-dashboards/config
     networks:
       - ids-network
     depends_on:
-      - opensearch
+      - elasticsearch
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
       interval: 30s
@@ -198,7 +191,7 @@ services:
       retries: 3
 
 volumes:
-  opensearch-data:
+  elasticsearch-data:
     driver: local
   redis-data:
     driver: local
