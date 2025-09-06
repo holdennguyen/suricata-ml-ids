@@ -6,15 +6,16 @@
 ## What Has Been Built
 
 ### 🏗️ Core Infrastructure
-✅ **Docker Compose Architecture** - 6 services with proper networking and dependencies  
+✅ **Docker Compose Architecture** - 9 services with proper networking and dependencies  
 ✅ **Service Directory Structure** - Complete organization with configs, scripts, and source code  
 ✅ **Health Checks & Monitoring** - All services have health endpoints and monitoring  
+✅ **Demo Script** - Comprehensive demo with ML training, detection, and alert generation  
 
 ### 🛡️ Security Services
 ✅ **Suricata IDS Service** - Fully operational with optimized rules  
 ✅ **Feature Extractor Service** - 25+ network features from PCAP files (Port 8001)  
-✅ **ML Trainer Service** - 99.6% accuracy Decision Tree + k-NN + Ensemble (Port 8002)  
-✅ **Real-time Detector Service** - <100ms latency ensemble predictions (Port 8080)  
+✅ **ML Trainer Service** - 100% accuracy Decision Tree + k-NN + Ensemble (Port 8002)  
+✅ **Real-time Detector Service** - 8-29ms latency with Elasticsearch integration (Port 8080)  
 ✅ **Traffic Replay Service** - Network simulation and PCAP replay (Port 8003)  
 
 ### 📊 SIEM & Analytics
@@ -90,12 +91,13 @@ cd suricata-ml-ids
 - **Traffic Replay API**: http://localhost:8003/docs ✅ Working
 
 ### Current Status - ALL SYSTEMS OPERATIONAL
-- **Elasticsearch**: GREEN cluster status, 28 active shards
-- **Kibana**: Dashboard interface fully functional
+- **Elasticsearch**: GREEN cluster status, 2000+ events indexed
+- **Kibana**: Dashboard interface with working relative time filters
 - **Suricata**: Running with custom rules and health checks
-- **Core ML Pipeline**: 14-23ms latency, 100% ensemble accuracy
-- **All Services**: 8/8 containers healthy and responding
+- **Core ML Pipeline**: 8-29ms latency, 100% ensemble accuracy
+- **All Services**: 9/9 containers healthy and responding
 - **Redis**: Cache and messaging fully operational
+- **Real-time Integration**: ML predictions automatically sent to Elasticsearch
 
 ## Educational Applications
 - **Cybersecurity Courses**: Network intrusion detection principles

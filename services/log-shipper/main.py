@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class EveLogHandler(FileSystemEventHandler):
     """Handles eve.json file changes and streams to Elasticsearch"""
     
-    def __init__(self, es_client, index_prefix="suricata-logs"):
+    def __init__(self, es_client, index_prefix="suricata-events"):
         self.es_client = es_client
         self.index_prefix = index_prefix
         self.last_position = 0
@@ -87,10 +87,12 @@ class EveLogHandler(FileSystemEventHandler):
             response = await self.es_client.bulk(operations=operations)
             
             if response.get('errors'):
-                logger.error("Bulk indexing errors occurred")
+                logger.error(f"Bulk indexing errors occurred for {len(events)} events")
                 for item in response.get('items', []):
                     if 'index' in item and 'error' in item['index']:
-                        logger.error(f"Index error: {item['index']['error']}")
+                        logger.error(f"Detailed error: {item['index']['error']}")
+            else:
+                logger.info(f"✅ Successfully indexed {len(events)} events to {index_name}")
             
         except Exception as e:
             logger.error(f"Bulk indexing failed: {e}")
@@ -120,7 +122,7 @@ async def main():
         return
     
     # Initialize handler
-    handler = EveLogHandler(es_client)
+    handler = EveLogHandler(es_client, "suricata-events")
     
     # Set up file watcher
     observer = Observer()

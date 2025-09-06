@@ -56,7 +56,7 @@ check_services_health() {
         
         # Check individual services
         local healthy_services=0
-        local total_services=6
+        local total_services=9
         
         # Check feature-extractor
         if curl -f -s http://localhost:8001/health > /dev/null 2>&1; then
@@ -73,18 +73,33 @@ check_services_health() {
             ((healthy_services++))
         fi
         
-        # Check OpenSearch
+        # Check traffic-replay
+        if curl -f -s http://localhost:8003/health > /dev/null 2>&1; then
+            ((healthy_services++))
+        fi
+        
+        # Check Elasticsearch
         if curl -f -s http://localhost:9200/_cluster/health > /dev/null 2>&1; then
             ((healthy_services++))
         fi
         
-        # Check OpenSearch Dashboards
+        # Check Kibana
         if curl -f -s http://localhost:5601/api/status > /dev/null 2>&1; then
             ((healthy_services++))
         fi
         
         # Check Redis
-        if redis-cli -h localhost -p 6379 ping > /dev/null 2>&1; then
+        if docker exec redis redis-cli ping > /dev/null 2>&1; then
+            ((healthy_services++))
+        fi
+        
+        # Check Suricata
+        if docker exec suricata-ids pgrep suricata > /dev/null 2>&1; then
+            ((healthy_services++))
+        fi
+        
+        # Check Log Shipper
+        if docker logs log-shipper --tail 1 2>&1 | grep -q "Successfully indexed\|Streamed.*events"; then
             ((healthy_services++))
         fi
         
@@ -114,7 +129,7 @@ start_services() {
     sleep 20
     
     # Start remaining services
-    $COMPOSE_CMD up -d kibana suricata feature-extractor ml-trainer realtime-detector traffic-replay
+    $COMPOSE_CMD up -d kibana suricata log-shipper feature-extractor ml-trainer realtime-detector traffic-replay
     
     print_status "Waiting for all services to start..."
     sleep 30
@@ -218,7 +233,9 @@ demo_realtime_detection() {
              "http_requests": 10,
              "dns_queries": 5,
              "tls_handshakes": 3
-           }
+           },
+           "source_ip": "192.168.1.100",
+           "dest_ip": "10.0.0.50"
          }' | jq '.'
     
     print_demo "Testing attack traffic detection..."
@@ -227,27 +244,51 @@ demo_realtime_detection() {
          -H "Content-Type: application/json" \
          -d '{
            "features": {
-             "total_packets": 500,
-             "total_bytes": 25000,
+             "total_packets": 1000,
+             "total_bytes": 50000,
              "avg_packet_size": 50.0,
-             "duration": 2.0,
-             "tcp_ratio": 0.95,
-             "udp_ratio": 0.05,
+             "duration": 1.0,
+             "tcp_ratio": 0.98,
+             "udp_ratio": 0.02,
              "icmp_ratio": 0.0,
-             "packets_per_second": 250.0,
+             "packets_per_second": 1000.0,
              "unique_src_ips": 1,
-             "unique_dst_ips": 50,
-             "tcp_syn_ratio": 0.9,
-             "well_known_ports": 0.2,
-             "high_ports": 0.8,
-             "payload_entropy": 3.0,
-             "fragmented_packets": 0.3,
-             "suspicious_flags": 0.8,
+             "unique_dst_ips": 100,
+             "tcp_syn_ratio": 0.95,
+             "well_known_ports": 0.1,
+             "high_ports": 0.9,
+             "payload_entropy": 2.5,
+             "fragmented_packets": 0.5,
+             "suspicious_flags": 0.9,
              "http_requests": 0,
              "dns_queries": 0,
              "tls_handshakes": 0
-           }
+           },
+           "source_ip": "10.0.0.100",
+           "dest_ip": "192.168.1.0/24"
          }' | jq '.'
+    
+    print_demo "Creating sample Suricata alert..."
+    
+    # Create a sample alert in Elasticsearch
+    curl -X POST "http://localhost:9200/suricata-alerts-$(date +%Y.%m)/_doc" \
+         -H "Content-Type: application/json" \
+         -d "{
+           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)\",
+           \"event_type\": \"alert\",
+           \"alert\": {
+             \"signature\": \"Demo Port Scan Detected\",
+             \"category\": \"Attempted Reconnaissance\",
+             \"severity\": 2
+           },
+           \"src_ip\": \"10.0.0.100\",
+           \"dest_ip\": \"192.168.1.50\",
+           \"src_port\": 54321,
+           \"dest_port\": 22,
+           \"proto\": \"TCP\"
+         }" > /dev/null
+    
+    print_success "Sample alert created!"
     
     print_success "Real-time detection demo completed!"
 }
@@ -333,6 +374,7 @@ show_status() {
         "feature-extractor:8001:/health"
         "ml-trainer:8002:/health"
         "realtime-detector:8080:/health"
+        "traffic-replay:8003:/health"
         "elasticsearch:9200:/_cluster/health"
         "kibana:5601:/api/status"
     )
@@ -352,6 +394,20 @@ show_status() {
         print_success "redis is healthy"
     else
         print_error "redis is not responding"
+    fi
+    
+    # Check Suricata
+    if docker exec suricata-ids pgrep suricata > /dev/null 2>&1; then
+        print_success "suricata is healthy"
+    else
+        print_error "suricata is not responding"
+    fi
+    
+    # Check Log Shipper
+    if docker logs log-shipper --tail 1 2>&1 | grep -q "Successfully indexed\|Streamed.*events"; then
+        print_success "log-shipper is healthy"
+    else
+        print_error "log-shipper is not responding"
     fi
 }
 

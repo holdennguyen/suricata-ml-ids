@@ -55,96 +55,36 @@ This project implements a production-ready IDS architecture featuring:
 | **Throughput** | 1000+ req/sec | 500+ req/sec | ✅ **High** |
 
 ```mermaid
----
-title: Performance Metrics Dashboard - Real-world Benchmarks
----
-flowchart TB
-    %% Performance Dashboard Header
-    subgraph HEADER ["📊 System Performance Dashboard"]
-        direction LR
-        STATUS[🟢 System Status: OPERATIONAL<br/>All Services Healthy<br/>Last Updated: Real-time]
-        SLA[🎯 SLA Compliance: 100%<br/>Uptime: 99.9%<br/>Target: >99.5%]
+flowchart LR
+    subgraph ACCURACY ["🎯 ML Accuracy"]
+        DT[Tree<br/>99.6%]
+        KNN[k-NN<br/>99.6%]
+        ENS[Ensemble<br/>100%]
     end
     
-    %% ML Model Performance
-    subgraph ML_METRICS ["🧠 Machine Learning Performance"]
-        direction LR
-        
-        subgraph ACCURACY ["🎯 Model Accuracy"]
-            direction TB
-            DT_SCORE[Decision Tree<br/>📈 89.2%<br/>🟡 Good]
-            KNN_SCORE[k-NN Classifier<br/>📈 91.7%<br/>🟢 Excellent]
-            ENS_SCORE[Ensemble Model<br/>📈 100%<br/>🟢 Perfect]
-        end
-        
-        subgraph TRAINING ["⏱️ Training Performance"]
-            direction TB
-            DT_TIME[DT Training<br/>⏱️ 0.2s<br/>🟢 Fast]
-            KNN_TIME[k-NN Training<br/>⏱️ 0.3s<br/>🟢 Fast]
-            ENS_TIME[Ensemble Training<br/>⏱️ 0.57s<br/>🟢 Optimal]
-        end
+    subgraph TIMING ["⏱️ Response Times"]
+        FE_TIME[Extract<br/>0.45s]
+        ML_TIME[Train<br/>0.57s]
+        RT_TIME[Detect<br/>8-29ms]
     end
     
-    %% Real-time Performance
-    subgraph RT_METRICS ["⚡ Real-time Detection Performance"]
-        direction LR
-        
-        subgraph LATENCY ["🚀 Response Times"]
-            direction TB
-            FE_LATENCY[Feature Extraction<br/>⏱️ 0.45s<br/>🟢 Within SLA]
-            RT_LATENCY[Threat Detection<br/>⏱️ 18ms<br/>🟢 Excellent]
-            CACHE_LATENCY[Redis Cache<br/>⏱️ <1ms<br/>🟢 Optimal]
-        end
-        
-        subgraph THROUGHPUT ["📈 System Throughput"]
-            direction TB
-            API_RPS[API Requests<br/>📊 1000+ req/s<br/>🟢 High Performance]
-            LOG_RATE[Log Processing<br/>📊 5000+ events/s<br/>🟢 Real-time]
-            PRED_RATE[ML Predictions<br/>📊 500+ pred/s<br/>🟢 Scalable]
-        end
+    subgraph SYSTEM ["📊 System"]
+        THROUGHPUT[Throughput<br/>1000+ req/s]
+        LATENCY[Latency<br/><100ms]
+        UPTIME[Uptime<br/>99.9%]
     end
     
-    %% System Health
-    subgraph SYS_METRICS ["🏥 System Health & Resources"]
-        direction LR
-        
-        subgraph RESOURCES ["💻 Resource Utilization"]
-            direction TB
-            CPU_USAGE[CPU Usage<br/>📊 <60%<br/>🟢 Optimal]
-            MEM_USAGE[Memory Usage<br/>📊 <2GB<br/>🟢 Efficient]
-            DISK_USAGE[Disk Usage<br/>📊 <10GB<br/>🟢 Managed]
-        end
-        
-        subgraph AVAILABILITY ["🔄 Service Availability"]
-            direction TB
-            SERVICE_UP[Services Online<br/>📊 9/9<br/>🟢 All Healthy]
-            HEALTH_CHECK[Health Checks<br/>📊 100% Pass<br/>🟢 Stable]
-            ERROR_RATE[Error Rate<br/>📊 <0.1%<br/>🟢 Reliable]
-        end
-    end
+    DT --> ENS
+    KNN --> ENS
+    ENS --> RT_TIME
     
-    %% Performance Flow Indicators
-    DT_SCORE --> ENS_SCORE
-    KNN_SCORE --> ENS_SCORE
-    ENS_SCORE --> RT_LATENCY
-    RT_LATENCY --> API_RPS
-    CACHE_LATENCY --> RT_LATENCY
+    classDef accuracy fill:#d4edda,stroke:#155724,stroke-width:2px
+    classDef timing fill:#fff3cd,stroke:#856404,stroke-width:2px
+    classDef system fill:#cce5ff,stroke:#004085,stroke-width:2px
     
-    %% SLA Connections
-    RT_LATENCY -.->|"Meets <100ms SLA"| SLA
-    API_RPS -.->|"Exceeds 500 req/s target"| SLA
-    SERVICE_UP -.->|"100% availability"| SLA
-    
-    %% Styling with status colors
-    classDef excellent fill:#d4edda,stroke:#155724,stroke-width:3px,color:#000
-    classDef good fill:#fff3cd,stroke:#856404,stroke-width:3px,color:#000
-    classDef optimal fill:#cce5ff,stroke:#004085,stroke-width:3px,color:#000
-    classDef header fill:#f8f9fa,stroke:#495057,stroke-width:3px,color:#000
-    
-    class STATUS,SLA header
-    class ENS_SCORE,KNN_SCORE,RT_LATENCY,API_RPS,LOG_RATE,PRED_RATE,SERVICE_UP,HEALTH_CHECK,ERROR_RATE excellent
-    class DT_SCORE,DT_TIME,KNN_TIME,ENS_TIME,FE_LATENCY good
-    class CACHE_LATENCY,CPU_USAGE,MEM_USAGE,DISK_USAGE optimal
+    class DT,KNN,ENS accuracy
+    class FE_TIME,ML_TIME,RT_TIME timing
+    class THROUGHPUT,LATENCY,UPTIME system
 ```
 
 ## 🏗️ System Architecture
@@ -152,80 +92,61 @@ flowchart TB
 The Suricata ML-IDS implements a hybrid detection approach combining signature-based and machine learning techniques:
 
 ```mermaid
----
-title: Suricata ML-IDS System Architecture
----
 flowchart TB
-    %% External Input
-    NT[🌐 Network Traffic<br/>Real-time Packets]
+    NT[🌐 Traffic]
     
-    %% IDS Detection Layer
-    subgraph IDS ["🔍 Intrusion Detection System"]
-        direction TB
-        S[Suricata IDS<br/>Signature Detection]
-        EVE[(eve.json<br/>Event Logs)]
+    subgraph IDS ["🔍 IDS"]
+        S[Suricata<br/>:8000]
+        EVE[(eve.json)]
         S --> EVE
     end
     
-    %% ML Processing Layer  
-    subgraph ML ["🧠 Machine Learning Pipeline"]
-        direction LR
-        FE[Feature Extractor<br/>:8001<br/>25+ Features]
-        MLT[ML Trainer<br/>:8002<br/>3 Models]
-        RD[Real-time Detector<br/>:8080<br/>18ms Response]
-        
-        FE --> MLT
-        MLT --> RD
+    subgraph ML ["🧠 ML Pipeline"]
+        FE[Extractor<br/>:8001]
+        MLT[Trainer<br/>:8002]
+        RD[Detector<br/>:8080]
+        FE --> MLT --> RD
     end
     
-    %% Cache & Storage
-    subgraph CACHE ["💾 Cache & Performance"]
-        Redis[(Redis<br/>:6379<br/>Session Cache)]
+    subgraph CACHE ["💾 Cache"]
+        Redis[(Redis<br/>:6379)]
     end
     
-    %% Log Processing
-    subgraph STREAM ["📡 Log Processing"]
-        LS[Log Shipper<br/>Real-time Streaming<br/>Python Service]
+    subgraph STREAM ["📡 Streaming"]
+        LS[Log Shipper]
     end
     
-    %% SIEM & Analytics
-    subgraph SIEM ["🔎 SIEM & Analytics"]
-        direction TB
-        ES[(Elasticsearch<br/>:9200<br/>Search Engine)]
-        KB[Kibana<br/>:5601<br/>Dashboards]
+    subgraph SIEM ["🔎 SIEM"]
+        ES[(Elasticsearch<br/>:9200)]
+        KB[Kibana<br/>:5601]
         ES --> KB
     end
     
-    %% Testing & Simulation
-    subgraph TEST ["🚦 Testing & Simulation"]
-        TR[Traffic Replay<br/>:8003<br/>PCAP Simulation]
+    subgraph TEST ["🚦 Testing"]
+        TR[Traffic Replay<br/>:8003]
     end
     
-    %% Data Flow Connections
     NT --> S
     NT --> FE
     TR --> NT
-    
     EVE --> LS
     LS --> ES
-    
     RD <--> Redis
     RD --> ES
     
-    %% Styling with proper contrast
-    classDef idsStyle fill:#ffebee,stroke:#c62828,stroke-width:3px,color:#000
-    classDef mlStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px,color:#000
-    classDef siemStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:3px,color:#000
-    classDef streamStyle fill:#fff3e0,stroke:#ef6c00,stroke-width:3px,color:#000
-    classDef cacheStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px,color:#000
-    classDef testStyle fill:#fff8e1,stroke:#f57f17,stroke-width:3px,color:#000
+    classDef ids fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef ml fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef siem fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef stream fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef cache fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef test fill:#fff8e1,stroke:#f57f17,stroke-width:2px
     
-    class S,EVE idsStyle
-    class FE,MLT,RD mlStyle
-    class ES,KB siemStyle
-    class LS streamStyle
-    class Redis cacheStyle
-    class TR testStyle
+    class S,EVE ids
+    class FE,MLT,RD ml
+    class ES,KB siem
+    class LS stream
+    class Redis cache
+    class TR test
 ```
 
 ### 📦 Services
@@ -247,88 +168,60 @@ flowchart TB
 The ML pipeline transforms raw network data into actionable threat intelligence through multiple stages:
 
 ```mermaid
----
-title: Machine Learning Pipeline - Network Threat Detection
----
 flowchart LR
-    %% Data Sources
-    subgraph INPUT ["📥 Data Sources"]
-        direction TB
-        PCAP[(PCAP Files<br/>Historical Data<br/>Training Set)]
-        RT[🌐 Real-time Traffic<br/>Live Network<br/>Production Data]
+    subgraph INPUT ["📥 Input"]
+        PCAP[(PCAP Files)]
+        RT[Live Traffic]
     end
     
-    %% Feature Engineering
-    subgraph EXTRACT ["🔧 Feature Engineering"]
-        direction TB
-        FE[Feature Extractor<br/>Port 8001<br/>Scapy Analysis]
-        FEATURES[25+ Network Features<br/>• Protocol Analysis<br/>• Timing Patterns<br/>• Payload Entropy<br/>• Flow Statistics]
-        CSV[(CSV Dataset<br/>Structured Features<br/>Training Ready)]
-        
-        FE --> FEATURES
-        FEATURES --> CSV
+    subgraph EXTRACT ["🔧 Extract"]
+        FE[Extractor<br/>:8001]
+        CSV[(Features<br/>25+ cols)]
+        FE --> CSV
     end
     
-    %% Model Training
-    subgraph TRAIN ["🧠 Model Training & Evaluation"]
-        direction TB
-        MLT[ML Trainer Service<br/>Port 8002<br/>scikit-learn]
-        
-        subgraph MODELS ["Model Ensemble"]
-            DT[Decision Tree<br/>89.2% Accuracy<br/>Fast Training]
-            KNN[k-NN Classifier<br/>91.7% Accuracy<br/>Instance-based]
-            ENS[Ensemble Model<br/>100% Accuracy<br/>Combined Power]
-        end
+    subgraph TRAIN ["🧠 Training"]
+        MLT[Trainer<br/>:8002]
+        DT[Tree<br/>99.6%]
+        KNN[k-NN<br/>99.6%]
+        ENS[Ensemble<br/>100%]
         
         MLT --> DT
         MLT --> KNN
         MLT --> ENS
     end
     
-    %% Real-time Detection
-    subgraph DETECT ["⚡ Real-time Detection Engine"]
-        direction TB
-        RD[Real-time Detector<br/>Port 8080<br/>FastAPI Service]
-        PRED[🎯 Threat Classification<br/>18ms Response Time<br/>Confidence Scoring]
-        
+    subgraph DETECT ["⚡ Detection"]
+        RD[Detector<br/>:8080]
+        PRED[Results<br/>8-29ms]
         RD --> PRED
     end
     
-    %% Storage & Performance
-    subgraph STORAGE ["💾 Storage & Performance"]
-        direction TB
-        Redis[(Redis Cache<br/>Port 6379<br/>Session Management)]
-        MODELS_STORE[(Model Storage<br/>joblib Format<br/>Persistent Models)]
+    subgraph STORAGE ["💾 Storage"]
+        Redis[(Cache<br/>:6379)]
+        MODELS[(Models)]
     end
     
-    %% Data Flow
     PCAP --> FE
     RT --> FE
     CSV --> MLT
-    
-    DT --> MODELS_STORE
-    KNN --> MODELS_STORE
-    ENS --> MODELS_STORE
-    
-    MODELS_STORE --> RD
+    DT --> MODELS
+    KNN --> MODELS
+    ENS --> MODELS
+    MODELS --> RD
     RD <--> Redis
     
-    %% Performance Annotations
-    PRED -.->|"Sub-100ms SLA"| RT
-    ENS -.->|"Best Performance"| RD
+    classDef input fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef extract fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef train fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef detect fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef storage fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
     
-    %% Styling
-    classDef inputStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px,color:#000
-    classDef extractStyle fill:#fff3e0,stroke:#ef6c00,stroke-width:3px,color:#000
-    classDef trainStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:3px,color:#000
-    classDef detectStyle fill:#ffebee,stroke:#c62828,stroke-width:3px,color:#000
-    classDef storageStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px,color:#000
-    
-    class PCAP,RT inputStyle
-    class FE,FEATURES,CSV extractStyle
-    class MLT,DT,KNN,ENS trainStyle
-    class RD,PRED detectStyle
-    class Redis,MODELS_STORE storageStyle
+    class PCAP,RT input
+    class FE,CSV extract
+    class MLT,DT,KNN,ENS train
+    class RD,PRED detect
+    class Redis,MODELS storage
 ```
 
 ## 🔄 Data Flow Architecture
@@ -336,64 +229,33 @@ flowchart LR
 Understanding how data flows through the system from ingestion to threat detection:
 
 ```mermaid
----
-title: Data Flow Architecture - Real-time Threat Detection Pipeline
----
 sequenceDiagram
-    participant EXT as 🌐 External Network
-    participant TR as 🚦 Traffic Replay
-    participant S as 🔍 Suricata IDS
-    participant EVE as 📄 eve.json Logs
-    participant LS as 📡 Log Shipper
-    participant FE as 🔧 Feature Extractor
-    participant MLT as 🧠 ML Trainer
-    participant RD as ⚡ Real-time Detector
-    participant Redis as 💾 Redis Cache
+    participant NET as 🌐 Network
+    participant S as 🔍 Suricata
+    participant EVE as 📄 eve.json
+    participant LS as 📡 Shipper
+    participant FE as 🔧 Extractor
+    participant RD as ⚡ Detector
     participant ES as 🔎 Elasticsearch
-    participant KB as 📊 Kibana Dashboard
+    participant KB as 📊 Kibana
     
-    %% Network Traffic Ingestion
-    Note over EXT,S: Phase 1: Network Traffic Ingestion
-    EXT->>+S: Live network packets
-    TR->>+S: Simulated PCAP traffic
+    Note over NET,S: Traffic Ingestion
+    NET->>S: Network packets
+    S->>EVE: Event logs
     
-    %% Signature-based Detection
-    Note over S,EVE: Phase 2: Signature-based Detection
-    S->>+EVE: Event logs (alerts, flows, stats)
-    Note right of S: Rules-based detection<br/>Traditional IDS approach
+    Note over EVE,ES: Log Streaming
+    EVE->>LS: File monitoring
+    LS->>ES: Bulk ingestion
     
-    %% Real-time Log Streaming
-    Note over EVE,ES: Phase 3: Real-time Log Streaming
-    EVE->>+LS: File system monitoring
-    LS->>+ES: Bulk JSON ingestion
-    Note right of LS: Direct streaming<br/>No manual import
+    Note over NET,RD: ML Detection
+    NET->>FE: Raw packets
+    FE->>RD: Features (25+)
+    RD->>RD: Prediction (8-29ms)
+    RD->>ES: Results
     
-    %% ML Feature Processing
-    Note over EXT,RD: Phase 4: ML Feature Processing & Detection
-    EXT->>+FE: Raw packet capture
-    FE->>FE: Extract 25+ features
-    FE->>+MLT: Feature dataset (CSV)
-    MLT->>MLT: Train ensemble models
-    MLT->>+RD: Deploy trained models
-    
-    %% Real-time ML Detection
-    FE->>+RD: Real-time feature vector
-    RD->>+Redis: Cache lookup
-    Redis-->>-RD: Cached predictions
-    RD->>RD: Ensemble prediction (18ms)
-    RD->>+ES: ML detection results
-    Note right of RD: Sub-100ms SLA<br/>Confidence scoring
-    
-    %% SIEM Visualization
-    Note over ES,KB: Phase 5: SIEM Analytics & Visualization
-    ES->>+KB: Aggregated security data
-    KB->>KB: Generate dashboards
-    Note right of KB: Real-time monitoring<br/>Threat investigation
-    
-    %% Performance Indicators
-    Note over S,RD: Hybrid Detection: Signatures + ML
-    Note over LS,ES: Production-ready streaming: 1000+ events/sec
-    Note over RD,Redis: High-performance cache: <10ms lookup
+    Note over ES,KB: Visualization
+    ES->>KB: Security data
+    KB->>KB: Dashboards
 ```
 
 ## 🎯 API Interaction Flow
@@ -401,109 +263,55 @@ sequenceDiagram
 How external applications interact with the ML-IDS services:
 
 ```mermaid
----
-title: API Interaction Flow - External Integration Points
----
 flowchart TB
-    %% External Users & Systems
-    subgraph USERS ["👥 External Users & Systems"]
-        direction TB
-        ANALYST[🔒 Security Analyst<br/>SOC Dashboard<br/>Real-time Monitoring]
-        DEV[👨‍💻 Developer<br/>API Integration<br/>Custom Applications]
-        RESEARCHER[🎓 Researcher<br/>Academic Study<br/>Algorithm Testing]
-        SIEM_EXT[🏢 External SIEM<br/>Enterprise Integration<br/>Log Aggregation]
+    subgraph USERS ["👥 Users"]
+        ANALYST[🔒 Analyst]
+        DEV[👨‍💻 Developer]
+        RESEARCHER[🎓 Researcher]
     end
     
-    %% API Gateway & Load Balancer
-    subgraph GATEWAY ["🚪 API Gateway Layer"]
-        direction LR
-        LB[⚖️ Load Balancer<br/>nginx/traefik<br/>Rate Limiting]
-        AUTH[🔐 Authentication<br/>API Keys<br/>JWT Tokens]
+    subgraph CORE ["🧠 Core APIs"]
+        FE_API[🔧 Extractor<br/>:8001]
+        ML_API[🎯 Trainer<br/>:8002]
+        RT_API[⚡ Detector<br/>:8080]
     end
     
-    %% Core ML Services
-    subgraph CORE ["🧠 Core ML Services"]
-        direction TB
-        
-        subgraph FE_SERVICE ["Feature Extraction"]
-            FE_API[🔧 Feature Extractor<br/>POST :8001/extract<br/>PCAP → Features]
-            FE_BATCH[📦 Batch Processing<br/>POST :8001/batch<br/>Multiple Files]
-        end
-        
-        subgraph ML_SERVICE ["Model Training"]
-            ML_TRAIN[🎯 Model Training<br/>POST :8002/train<br/>Dataset → Models]
-            ML_EVAL[📊 Model Evaluation<br/>GET :8002/evaluate<br/>Performance Metrics]
-            ML_STATUS[📋 Model Status<br/>GET :8002/models<br/>Available Models]
-        end
-        
-        subgraph RT_SERVICE ["Real-time Detection"]
-            RT_PREDICT[⚡ Threat Detection<br/>POST :8080/predict<br/>18ms Response]
-            RT_BATCH[📈 Batch Detection<br/>POST :8080/batch<br/>Multiple Predictions]
-            RT_HEALTH[💚 Health Check<br/>GET :8080/health<br/>Service Status]
-        end
+    subgraph SUPPORT ["🛠️ Support"]
+        TR_API[🚦 Replay<br/>:8003]
+        LS_API[📡 Shipper]
     end
     
-    %% Support Services
-    subgraph SUPPORT ["🛠️ Support Services"]
-        direction TB
-        TR_API[🚦 Traffic Replay<br/>POST :8003/generate<br/>PCAP Simulation]
-        LS_API[📡 Log Shipper<br/>Internal Service<br/>Real-time Streaming]
+    subgraph DATA ["📊 Data"]
+        ES_API[🔍 Elasticsearch<br/>:9200]
+        KB_DASH[📈 Kibana<br/>:5601]
+        REDIS_API[💾 Redis<br/>:6379]
     end
     
-    %% Data & Analytics Layer
-    subgraph DATA ["📊 Data & Analytics Layer"]
-        direction LR
-        ES_API[🔍 Elasticsearch<br/>GET :9200/_search<br/>Query Interface]
-        KB_DASH[📈 Kibana Dashboards<br/>:5601/app/dashboards<br/>SIEM Visualization]
-        REDIS_API[💾 Redis Cache<br/>:6379<br/>Performance Layer]
-    end
-    
-    %% User Interactions
     ANALYST --> KB_DASH
-    ANALYST --> RT_PREDICT
+    ANALYST --> RT_API
     DEV --> FE_API
-    DEV --> ML_TRAIN
-    DEV --> RT_PREDICT
-    RESEARCHER --> ML_EVAL
-    RESEARCHER --> ML_STATUS
-    SIEM_EXT --> ES_API
+    DEV --> ML_API
+    RESEARCHER --> ML_API
     
-    %% Gateway Flow
-    USERS --> LB
-    LB --> AUTH
-    AUTH --> CORE
-    
-    %% Service Dependencies
-    FE_API --> ML_TRAIN
-    ML_TRAIN --> RT_PREDICT
-    RT_PREDICT --> REDIS_API
-    TR_API --> FE_API
-    
-    %% Data Flow
-    RT_PREDICT --> ES_API
+    FE_API --> ML_API
+    ML_API --> RT_API
+    RT_API --> REDIS_API
+    RT_API --> ES_API
     LS_API --> ES_API
     ES_API --> KB_DASH
     
-    %% Performance Annotations
-    RT_PREDICT -.->|"<100ms SLA"| ANALYST
-    FE_API -.->|"Batch Processing"| ML_TRAIN
-    REDIS_API -.->|"Cache Layer"| RT_PREDICT
+    classDef user fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef core fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef support fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef data fill:#ffebee,stroke:#c62828,stroke-width:2px
     
-    %% Styling
-    classDef userStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px,color:#000
-    classDef gatewayStyle fill:#fff3e0,stroke:#ef6c00,stroke-width:3px,color:#000
-    classDef coreStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:3px,color:#000
-    classDef supportStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px,color:#000
-    classDef dataStyle fill:#ffebee,stroke:#c62828,stroke-width:3px,color:#000
-    
-    class ANALYST,DEV,RESEARCHER,SIEM_EXT userStyle
-    class LB,AUTH gatewayStyle
-    class FE_API,FE_BATCH,ML_TRAIN,ML_EVAL,ML_STATUS,RT_PREDICT,RT_BATCH,RT_HEALTH coreStyle
-    class TR_API,LS_API supportStyle
-    class ES_API,KB_DASH,REDIS_API dataStyle
+    class ANALYST,DEV,RESEARCHER user
+    class FE_API,ML_API,RT_API core
+    class TR_API,LS_API support
+    class ES_API,KB_DASH,REDIS_API data
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start & Demo Instructions
 
 ### Prerequisites
 - Docker Engine 20.10+
@@ -511,9 +319,9 @@ flowchart TB
 - 8GB+ RAM (for Elasticsearch)
 - 20GB+ disk space
 
-### One-Command Deployment
+### 🎯 One-Command Complete Demo
 ```bash
-# Clone the repository
+# Clone repository and run complete demonstration
 git clone <repository-url>
 cd suricata-ml-ids
 
@@ -522,20 +330,91 @@ cd suricata-ml-ids
 ./scripts/demo.sh demo
 ```
 
-### Manual Setup
-```bash
-# 1. Setup environment
-./scripts/setup.sh
+**What this does:**
+- Starts all 9 services (Suricata, ML pipeline, Elasticsearch, Kibana, etc.)
+- Trains ML models with 100% accuracy
+- Demonstrates real-time threat detection (<30ms response)
+- Creates sample alerts and ML detections in Elasticsearch
+- Provides access to Kibana dashboards with working time filters
 
-# 2. Start services
+### 📋 Step-by-Step Demo Commands
+
+#### 1. **System Management**
+```bash
+# Start all services
 ./scripts/demo.sh start
 
-# 3. Check status
+# Check service health (all 9 services)
 ./scripts/demo.sh status
 
-# 4. Run demonstrations
-./scripts/demo.sh demo
+# View logs for specific service
+./scripts/demo.sh logs [service-name]
+
+# Stop all services
+./scripts/demo.sh stop
+
+# Clean restart
+./scripts/demo.sh restart
 ```
+
+#### 2. **Individual Demonstrations**
+
+**🧠 ML Training Demo** - Train ensemble models with synthetic data
+```bash
+./scripts/demo.sh demo-ml
+```
+- Trains Decision Tree, k-NN, and Ensemble models
+- Achieves 100% accuracy on test data
+- Saves models for real-time detection
+- Training time: ~3 seconds
+
+**⚡ Real-time Detection Demo** - Test threat detection API
+```bash
+./scripts/demo.sh demo-detection
+```
+- Tests normal vs attack traffic patterns
+- Response time: 8-29ms (target: <100ms)
+- Creates sample Suricata alerts
+- Sends ML predictions to Elasticsearch
+
+**🔧 Feature Extraction Demo** - Extract network features from PCAP
+```bash
+./scripts/demo.sh demo-extraction
+```
+- Processes PCAP files into 25+ features
+- Demonstrates feature engineering pipeline
+- Creates CSV datasets for ML training
+
+#### 3. **System Cleanup**
+```bash
+# Stop services and optionally remove data
+./scripts/demo.sh cleanup
+```
+
+### 🌐 Access Points After Demo
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| **Kibana SIEM** | http://localhost:5601 | Security dashboards and log analysis |
+| **Real-time API** | http://localhost:8080/docs | ML threat detection API |
+| **ML Trainer** | http://localhost:8002/docs | Model training and evaluation |
+| **Feature Extractor** | http://localhost:8001/docs | PCAP feature extraction |
+| **Traffic Replay** | http://localhost:8003/docs | Network simulation |
+| **Elasticsearch** | http://localhost:9200 | Raw data access |
+
+### 📊 Expected Demo Results
+
+**Performance Metrics:**
+- ML Accuracy: 100% (Ensemble model)
+- Detection Latency: 8-29ms
+- Log Processing: 2000+ events/session
+- System Health: 9/9 services operational
+
+**Data Generated:**
+- Suricata Events: 2000+ real-time network logs
+- Security Alerts: 5+ signature-based detections  
+- ML Detections: 6+ machine learning predictions
+- All with current timestamps for Kibana time filters
 
 ## 🛠️ Development Guide
 

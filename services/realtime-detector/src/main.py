@@ -19,6 +19,8 @@ import pandas as pd
 import numpy as np
 import redis.asyncio as redis
 from pydantic import BaseModel
+from elasticsearch import AsyncElasticsearch
+from datetime import datetime
 
 from detector_engine import DetectorEngine
 from model_manager import ModelManager
@@ -41,9 +43,11 @@ MODELS_DIR = Path("/app/models")
 LOGS_DIR = Path("/app/logs")
 LATENCY_TARGET = int(os.getenv("LATENCY_TARGET_MS", "100"))
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379")
+ELASTICSEARCH_HOSTS = os.getenv("ELASTICSEARCH_HOSTS", "http://elasticsearch:9200").split(',')
 
-# Redis connection
+# Redis and Elasticsearch connections
 redis_client = None
+es_client = None
 
 class DetectionRequest(BaseModel):
     features: Dict[str, float]
@@ -88,10 +92,41 @@ class WebSocketManager:
 
 websocket_manager = WebSocketManager()
 
+async def send_to_elasticsearch(response: DetectionResponse, request: DetectionRequest):
+    """Send detection result to Elasticsearch"""
+    global es_client
+    
+    if not es_client:
+        return
+    
+    try:
+        # Create document for Elasticsearch
+        doc = {
+            "@timestamp": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')[:-3] + 'Z',
+            "prediction": response.prediction,
+            "confidence": response.confidence,
+            "threat_score": response.threat_score,
+            "source_ip": request.source_ip or "unknown",
+            "dest_ip": request.dest_ip or "unknown",
+            "processing_time_ms": response.processing_time_ms,
+            "model": "ensemble",
+            "features": request.features
+        }
+        
+        # Index to current month
+        index_name = f"ml-detections-{datetime.utcnow().strftime('%Y.%m')}"
+        
+        # Send to Elasticsearch
+        await es_client.index(index=index_name, document=doc)
+        logger.debug(f"Sent detection result to Elasticsearch: {response.prediction}")
+        
+    except Exception as e:
+        logger.error(f"Failed to send to Elasticsearch: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize service on startup"""
-    global redis_client
+    global redis_client, es_client
     
     logger.info("Starting Real-time Detector Service...")
     
@@ -108,6 +143,19 @@ async def lifespan(app: FastAPI):
         logger.warning(f"Redis connection failed: {e}. Running without Redis.")
         redis_client = None
     
+    # Initialize Elasticsearch connection
+    try:
+        es_client = AsyncElasticsearch(
+            hosts=ELASTICSEARCH_HOSTS,
+            verify_certs=False,
+            ssl_show_warn=False
+        )
+        await es_client.info()
+        logger.info("Elasticsearch connection established")
+    except Exception as e:
+        logger.warning(f"Elasticsearch connection failed: {e}. Running without Elasticsearch.")
+        es_client = None
+    
     # Load available models
     await model_manager.load_models(MODELS_DIR)
     
@@ -119,6 +167,8 @@ async def lifespan(app: FastAPI):
     # Cleanup on shutdown
     if redis_client:
         await redis_client.close()
+    if es_client:
+        await es_client.close()
     logger.info("Real-time Detector Service stopped")
 
 # Initialize FastAPI app
@@ -209,6 +259,13 @@ async def detect_threat(request: DetectionRequest):
                 )
             except Exception as e:
                 logger.debug(f"Redis cache error: {e}")
+        
+        # Send to Elasticsearch if available and threat score is significant
+        if es_client and (detection_result["threat_score"] > 0.1 or detection_result["prediction"] == "attack"):
+            try:
+                await send_to_elasticsearch(response, request)
+            except Exception as e:
+                logger.debug(f"Elasticsearch logging error: {e}")
         
         # Check latency target
         if processing_time > LATENCY_TARGET:

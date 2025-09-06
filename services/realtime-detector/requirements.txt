@@ -18,6 +18,10 @@ aioredis==2.0.1
 httpx==0.25.2
 requests==2.31.0
 
+# Elasticsearch integration
+elasticsearch==8.11.0
+aiohttp==3.9.1
+
 # Utilities
 python-multipart==0.0.6
 aiofiles==23.2.1
