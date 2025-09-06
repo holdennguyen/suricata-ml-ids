@@ -18,14 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY src/ ./src/
-COPY config/ ./config/
-COPY scripts/ ./scripts/
 
 # Create necessary directories
-RUN mkdir -p /app/datasets /app/models /app/results
-
-# Set permissions
-RUN chmod +x scripts/*.sh
+RUN mkdir -p /app/datasets /app/models /app/results /app/config /app/scripts
 
 # Expose health check port
 EXPOSE 8002

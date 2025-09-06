@@ -1,4 +1,4 @@
-version: '3.8'
+# Docker Compose configuration for Suricata ML-IDS
 
 services:
   # Suricata IDS Service
@@ -31,6 +31,8 @@ services:
       context: ./services/feature-extractor
       dockerfile: Dockerfile
     container_name: feature-extractor
+    ports:
+      - "8001:8001"
     volumes:
       - ./data/pcaps:/app/pcaps:ro
       - ./data/datasets:/app/datasets
@@ -54,6 +56,8 @@ services:
       context: ./services/ml-trainer
       dockerfile: Dockerfile
     container_name: ml-trainer
+    ports:
+      - "8002:8002"
     volumes:
       - ./data/datasets:/app/datasets:ro
       - ./data/models:/app/models
@@ -105,6 +109,8 @@ services:
       context: ./services/traffic-replay
       dockerfile: Dockerfile
     container_name: traffic-replay
+    ports:
+      - "8003:8003"
     volumes:
       - ./data/pcaps:/app/pcaps
       - ./data/synthetic:/app/synthetic
@@ -147,7 +153,7 @@ services:
       - opensearch-data:/usr/share/opensearch/data
       - ./services/opensearch/config:/usr/share/opensearch/config
     ports:
-      - "9200:9200"
+      - "9201:9200"
       - "9600:9600"
     networks:
       - ids-network
@@ -162,7 +168,7 @@ services:
     image: opensearchproject/opensearch-dashboards:2.11.0
     container_name: opensearch-dashboards
     ports:
-      - "5601:5601"
+      - "5602:5601"
     environment:
       OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
       DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"

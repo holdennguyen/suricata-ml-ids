@@ -1,23 +1,19 @@
-FROM suricata/suricata:7.0.2
-
-# Install additional tools
-RUN apt-get update && apt-get install -y \
-    curl \
-    jq \
-    && rm -rf /var/lib/apt/lists/*
+FROM jasonish/suricata:7.0.2
 
 # Create necessary directories
 RUN mkdir -p /var/log/suricata/pcaps \
     && mkdir -p /etc/suricata/rules \
     && mkdir -p /var/lib/suricata/rules
 
-# Copy custom configuration
+# Copy custom configuration with proper permissions
 COPY config/suricata.yaml /etc/suricata/suricata.yaml
 COPY rules/ /etc/suricata/rules/
 
-# Set proper permissions
-RUN chown -R suricata:suricata /var/log/suricata \
-    && chown -R suricata:suricata /etc/suricata/rules
+# Fix permissions for configuration files
+RUN chown -R suricata:suricata /etc/suricata/ \
+    && chown -R suricata:suricata /var/log/suricata/ \
+    && chown -R suricata:suricata /var/lib/suricata/ \
+    && chmod 644 /etc/suricata/suricata.yaml
 
 # Health check script
 COPY scripts/health-check.sh /usr/local/bin/health-check.sh

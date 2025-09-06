@@ -4,9 +4,8 @@ FROM python:3.9-slim
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    libpcap-dev \
-    tcpdump \
     curl \
+    tcpdump \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -22,10 +21,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 
 # Create necessary directories
-RUN mkdir -p /app/pcaps /app/datasets /app/logs /app/config /app/scripts
+RUN mkdir -p /app/pcaps /app/synthetic /app/config
 
 # Expose health check port
-EXPOSE 8001
+EXPOSE 8003
 
 # Set environment variables
 ENV PYTHONPATH=/app/src
@@ -33,7 +32,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8001/health')" || exit 1
+    CMD python -c "import requests; requests.get('http://localhost:8003/health')" || exit 1
 
 # Start the service
 CMD ["python", "src/main.py"]

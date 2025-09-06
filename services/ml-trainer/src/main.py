@@ -8,6 +8,7 @@ import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Optional, Any
+from contextlib import asynccontextmanager
 import time
 
 import uvicorn
@@ -28,13 +29,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="ML Trainer Service",
-    description="Trains and evaluates ML models for network intrusion detection",
-    version="1.0.0"
-)
-
 # Initialize components
 ml_trainer = MLTrainer()
 model_evaluator = ModelEvaluator()
@@ -46,8 +40,8 @@ MODELS_DIR = Path("/app/models")
 RESULTS_DIR = Path("/app/results")
 ACCURACY_TARGET = float(os.getenv("ML_ACCURACY_TARGET", "0.90"))
 
-@app.on_startup
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """Initialize service on startup"""
     logger.info("Starting ML Trainer Service...")
     
@@ -57,6 +51,17 @@ async def startup_event():
     RESULTS_DIR.mkdir(exist_ok=True)
     
     logger.info(f"ML Trainer Service started with accuracy target: {ACCURACY_TARGET}")
+    yield
+    # Cleanup on shutdown
+    logger.info("ML Trainer Service shutting down...")
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="ML Trainer Service",
+    description="Trains and evaluates ML models for network intrusion detection",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 @app.get("/health")
 async def health_check():

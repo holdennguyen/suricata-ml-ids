@@ -8,6 +8,7 @@ import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Optional
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, BackgroundTasks
@@ -26,13 +27,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="Feature Extractor Service",
-    description="Extracts network features from PCAP files for ML training",
-    version="1.0.0"
-)
-
 # Initialize components
 feature_engine = FeatureEngine()
 pcap_processor = PCAPProcessor()
@@ -43,8 +37,8 @@ PCAP_DIR = Path("/app/pcaps")
 DATASET_DIR = Path("/app/datasets")
 LOGS_DIR = Path("/app/logs")
 
-@app.on_startup
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """Initialize service on startup"""
     logger.info("Starting Feature Extractor Service...")
     
@@ -54,6 +48,17 @@ async def startup_event():
     LOGS_DIR.mkdir(exist_ok=True)
     
     logger.info("Feature Extractor Service started successfully")
+    yield
+    # Cleanup on shutdown
+    logger.info("Feature Extractor Service shutting down...")
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="Feature Extractor Service",
+    description="Extracts network features from PCAP files for ML training",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 @app.get("/health")
 async def health_check():

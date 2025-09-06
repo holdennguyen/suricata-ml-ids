@@ -1,7 +1,7 @@
-# Active Context: Suricata ML-IDS - Project Complete ✅
+# Active Context: Suricata ML-IDS - System Operational ✅
 
-## Project Status: COMPLETED
-**All deliverables successfully implemented and ready for deployment**
+## Project Status: OPERATIONAL (6/8 Services Running)
+**Core functionality working, minor SIEM components need attention**
 
 ## What Has Been Built
 
@@ -11,16 +11,16 @@
 ✅ **Health Checks & Monitoring** - All services have health endpoints and monitoring  
 
 ### 🛡️ Security Services
-✅ **Suricata IDS Service** - Network intrusion detection with custom educational rules  
-✅ **Feature Extractor Service** - 25+ network features from PCAP files  
-✅ **ML Trainer Service** - Decision Tree + k-NN + Ensemble models (>90% accuracy target)  
-✅ **Real-time Detector Service** - <100ms latency ensemble predictions  
-✅ **Traffic Replay Service** - Network simulation and synthetic attack generation  
+⚠️ **Suricata IDS Service** - Running but exited (permissions/config issue)  
+✅ **Feature Extractor Service** - 25+ network features from PCAP files (Port 8001)  
+✅ **ML Trainer Service** - Decision Tree + k-NN + Ensemble models (Port 8002)  
+✅ **Real-time Detector Service** - <100ms latency ensemble predictions (Port 8080)  
+✅ **Traffic Replay Service** - Network simulation and synthetic attack generation (Port 8003)  
 
 ### 📊 SIEM & Analytics
-✅ **OpenSearch Integration** - Search engine and log storage  
-✅ **OpenSearch Dashboards** - SIEM visualization interface  
-✅ **Redis Integration** - Caching and message queuing  
+⚠️ **OpenSearch Integration** - Search engine configuration issues (JVM options)  
+✅ **OpenSearch Dashboards** - SIEM visualization interface (Port 5602)  
+✅ **Redis Integration** - Caching and message queuing (Port 6379)  
 
 ### 🚀 Automation & Deployment
 ✅ **One-Command Deployment** - `./demo.sh demo` for complete system startup  
@@ -79,10 +79,17 @@ cd suricata-ml-ids
 ```
 
 ### Access Points
-- **OpenSearch Dashboards**: http://localhost:5601
-- **Real-time Detector API**: http://localhost:8080/docs
-- **ML Trainer API**: http://localhost:8002/docs
-- **Feature Extractor API**: http://localhost:8001/docs
+- **OpenSearch Dashboards**: http://localhost:5602 (Port changed due to conflict)
+- **Real-time Detector API**: http://localhost:8080/docs ✅ Working
+- **ML Trainer API**: http://localhost:8002/docs ✅ Working  
+- **Feature Extractor API**: http://localhost:8001/docs ✅ Working
+- **Traffic Replay API**: http://localhost:8003/docs ✅ Working
+
+### Current Issues & Status
+- **OpenSearch**: JVM configuration issues, needs further debugging
+- **Suricata**: Permissions resolved but service still exiting
+- **Core ML Pipeline**: Fully operational with 0.09-0.23ms latency
+- **All Python Services**: Healthy and responding to API calls
 
 ## Educational Applications
 - **Cybersecurity Courses**: Network intrusion detection principles

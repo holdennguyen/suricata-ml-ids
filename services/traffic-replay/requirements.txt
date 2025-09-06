@@ -1,0 +1,21 @@
+# Core dependencies
+scapy==2.5.0
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+
+# Network analysis
+pyshark==0.6
+dpkt==1.9.8
+netaddr==0.10.1
+
+# Utilities
+python-multipart==0.0.6
+aiofiles==23.2.1
+
+# HTTP client
+httpx==0.25.2
+requests==2.31.0
+
+# Logging
+structlog==23.2.0

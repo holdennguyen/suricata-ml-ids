@@ -9,6 +9,7 @@ import os
 import time
 from pathlib import Path
 from typing import Dict, List, Optional, Any
+from contextlib import asynccontextmanager
 import json
 
 import uvicorn
@@ -29,13 +30,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-# Initialize FastAPI app
-app = FastAPI(
-    title="Real-time Detector Service",
-    description="Real-time network intrusion detection with ensemble ML models",
-    version="1.0.0"
-)
 
 # Initialize components
 detector_engine = DetectorEngine()
@@ -94,8 +88,8 @@ class WebSocketManager:
 
 websocket_manager = WebSocketManager()
 
-@app.on_startup
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """Initialize service on startup"""
     global redis_client
     
@@ -121,13 +115,19 @@ async def startup_event():
     await detector_engine.initialize(model_manager)
     
     logger.info(f"Real-time Detector Service started with {LATENCY_TARGET}ms latency target")
-
-@app.on_shutdown
-async def shutdown_event():
-    """Cleanup on shutdown"""
+    yield
+    # Cleanup on shutdown
     if redis_client:
         await redis_client.close()
     logger.info("Real-time Detector Service stopped")
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="Real-time Detector Service",
+    description="Real-time network intrusion detection with ensemble ML models",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 @app.get("/health")
 async def health_check():

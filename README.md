@@ -17,21 +17,62 @@ This project implements a production-ready IDS architecture featuring:
 - **SIEM Integration** via OpenSearch dashboards
 - **Educational Focus** with comprehensive documentation
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Traffic       │    │   Suricata      │    │   Feature       │
-│   Replay        │───▶│   IDS           │───▶│   Extractor     │
-│   Service       │    │   Service       │    │   Service       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │                        │
-                                ▼                        ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   OpenSearch    │◀───│   Real-time     │◀───│   ML Trainer    │
-│   SIEM          │    │   Detector      │    │   Service       │
-│   Service       │    │   Service       │    │   Service       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+The Suricata ML-IDS implements a hybrid detection approach combining signature-based and machine learning techniques:
+
+```mermaid
+graph TB
+    subgraph "Network Layer"
+        Traffic[Network Traffic]
+        Replay[Traffic Replay Service<br/>Port 8003]
+    end
+    
+    subgraph "Detection Layer"
+        Suricata[Suricata IDS<br/>Signature Detection]
+        FE[Feature Extractor<br/>Port 8001<br/>25+ Features]
+    end
+    
+    subgraph "ML Pipeline"
+        Trainer[ML Trainer<br/>Port 8002<br/>Decision Tree + k-NN]
+        Models[(Trained Models)]
+        RD[Real-time Detector<br/>Port 8080<br/>Ensemble Predictions]
+    end
+    
+    subgraph "SIEM & Storage"
+        OS[OpenSearch<br/>Port 9201<br/>Log Storage]
+        OSD[OpenSearch Dashboards<br/>Port 5602<br/>Visualization]
+        Redis[(Redis Cache<br/>Port 6379)]
+    end
+    
+    subgraph "Data Flow"
+        PCAP[PCAP Files]
+        Features[Feature Vectors]
+        Alerts[Security Alerts]
+    end
+    
+    Traffic --> Suricata
+    Replay --> Traffic
+    Suricata --> FE
+    PCAP --> FE
+    FE --> Features
+    Features --> Trainer
+    Trainer --> Models
+    Models --> RD
+    Features --> RD
+    RD --> Alerts
+    Suricata --> OS
+    RD --> OS
+    OS --> OSD
+    RD --> Redis
+    
+    classDef serviceBox fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef dataBox fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef mlBox fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    
+    class Suricata,FE,Replay serviceBox
+    class Trainer,RD,Models mlBox
+    class OS,OSD,Redis,PCAP,Features,Alerts dataBox
 ```
 
 ### 📦 Services
@@ -43,8 +84,8 @@ This project implements a production-ready IDS architecture featuring:
 | **ML Trainer** | 8002 | Decision Tree + k-NN model training |
 | **Real-time Detector** | 8080 | Ensemble predictions (<100ms) |
 | **Traffic Replay** | 8003 | Network traffic simulation |
-| **OpenSearch** | 9200 | Search and analytics engine |
-| **OpenSearch Dashboards** | 5601 | SIEM visualization interface |
+| **OpenSearch** | 9201 | Search and analytics engine |
+| **OpenSearch Dashboards** | 5602 | SIEM visualization interface |
 | **Redis** | 6379 | Caching and message queuing |
 
 ## 🚀 Quick Start
