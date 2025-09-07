@@ -241,25 +241,194 @@ flowchart LR
 | **System Health** | All services | 9/9 healthy | ✅ Perfect |
 | **Data Throughput** | 1000+ req/sec | Tested ✓ | ✅ Capable |
 
+## 📊 Kibana Monitoring & Results Analysis
+
+After running the demo, users can analyze results in Kibana at **http://localhost:5601**. Here's what to look for in each data view:
+
+### 🚨 Suricata Alerts (`suricata-alerts-*`)
+
+**Purpose**: Signature-based detection results from Suricata IDS
+
+**Key Fields to Monitor:**
+- **`@timestamp`**: When the alert was generated
+- **`alert.signature`**: Attack description (e.g., "DoS SYN Flood Attack Detected")
+- **`alert.category`**: Attack classification (e.g., "Denial of Service")
+- **`alert.severity`**: Risk level (1=High, 2=Medium, 3=Low)
+- **`alert.attack_type`**: NSL-KDD category (dos, probe, r2l, u2r)
+- **`src_ip`** / **`dest_ip`**: Source and destination IP addresses
+- **`src_port`** / **`dest_port`**: Network ports involved
+- **`proto`**: Protocol used (TCP, UDP, ICMP)
+
+**Sample Alert:**
+```json
+{
+  "@timestamp": "2025-09-07T10:24:45.000Z",
+  "alert": {
+    "signature": "DoS SYN Flood Attack Detected",
+    "category": "Denial of Service",
+    "severity": 1,
+    "attack_type": "dos"
+  },
+  "src_ip": "10.0.0.100",
+  "dest_ip": "192.168.1.10"
+}
+```
+
+**What to Look For:**
+- **Attack Distribution**: Count by `alert.attack_type`
+- **Severity Trends**: Timeline by `alert.severity`
+- **Source Analysis**: Top attacking IPs in `src_ip`
+- **Target Analysis**: Most targeted IPs in `dest_ip`
+
+### 🤖 ML Detection Results (`ml-detections-*`)
+
+**Purpose**: Machine learning predictions and threat scoring
+
+**Key Fields to Monitor:**
+- **`@timestamp`**: When the ML prediction was made
+- **`prediction`**: ML result ("attack" or "normal")
+- **`confidence`**: Model confidence level (0.0-1.0)
+- **`threat_score`**: Risk assessment score (0.0-10.0)
+- **`model_used`**: Algorithm used ("ensemble", "decision_tree", "knn")
+- **`attack_type`**: Predicted attack category
+- **`processing_time_ms`**: Detection latency in milliseconds
+- **`src_ip`** / **`dest_ip`**: Network endpoints analyzed
+
+**Sample Detection:**
+```json
+{
+  "@timestamp": "2025-09-07T10:24:45.000Z",
+  "prediction": "attack",
+  "confidence": 0.95,
+  "threat_score": 9.2,
+  "model_used": "ensemble",
+  "attack_type": "dos",
+  "processing_time_ms": 12
+}
+```
+
+**What to Look For:**
+- **Prediction Accuracy**: Ratio of "attack" vs "normal" predictions
+- **Confidence Distribution**: Histogram of confidence scores
+- **Performance Metrics**: Average `processing_time_ms`
+- **Model Comparison**: Performance by `model_used`
+- **Threat Scoring**: Distribution of `threat_score` values
+
+### 📡 Real-time Events (`suricata-events-*`)
+
+**Purpose**: Live network traffic monitoring and system statistics
+
+**Key Fields to Monitor:**
+- **`timestamp`**: Event occurrence time
+- **`event_type`**: Type of event ("flow", "http", "dns", "stats", "alert")
+- **`src_ip`** / **`dest_ip`**: Network endpoints
+- **`proto`**: Network protocol
+- **`flow.bytes_toserver`** / **`flow.bytes_toclient`**: Data transfer volumes
+- **`stats.capture.kernel_packets`**: Packets processed by system
+- **`stats.uptime`**: System operational time
+
+**Sample Event:**
+```json
+{
+  "timestamp": "2025-09-07T10:40:35.768779+0000",
+  "event_type": "stats",
+  "stats": {
+    "uptime": 20032,
+    "capture": {
+      "kernel_packets": 44,
+      "kernel_drops": 0
+    }
+  }
+}
+```
+
+**What to Look For:**
+- **Traffic Volume**: Total packets in `stats.capture.kernel_packets`
+- **System Health**: `stats.capture.kernel_drops` (should be 0)
+- **Network Flows**: Connection patterns in flow events
+- **Protocol Distribution**: Traffic breakdown by `proto`
+
+### 📈 Kibana Dashboard Creation Guide
+
+#### 1. **Security Overview Dashboard**
+```
+Visualizations to Create:
+- Alert Timeline: Line chart of alerts over time
+- Attack Type Distribution: Pie chart of alert.attack_type
+- Severity Heatmap: Heat map by severity and time
+- Top Attackers: Data table of src_ip with alert counts
+```
+
+#### 2. **ML Performance Dashboard**
+```
+Visualizations to Create:
+- Prediction Confidence: Histogram of confidence scores
+- Processing Latency: Line chart of processing_time_ms
+- Threat Score Distribution: Area chart of threat_score
+- Model Comparison: Bar chart comparing model_used performance
+```
+
+#### 3. **Network Traffic Dashboard**
+```
+Visualizations to Create:
+- Traffic Volume: Metric showing total packets processed
+- Protocol Breakdown: Donut chart of proto distribution
+- System Uptime: Gauge showing stats.uptime
+- Packet Drop Rate: Metric of kernel_drops/kernel_packets
+```
+
+### 🔍 Demo Results Verification Checklist
+
+After running `./scripts/demo.sh demo-detection`, verify these results in Kibana:
+
+#### ✅ **Suricata Alerts Index**
+- [ ] **4 new alerts** created (DoS, Probe, R2L, U2R)
+- [ ] **Current timestamps** (not old dates)
+- [ ] **Different attack types** in `alert.attack_type`
+- [ ] **Varied severity levels** (1 for DoS/U2R, 2 for Probe/R2L)
+
+#### ✅ **ML Detections Index**
+- [ ] **1+ new detection** results
+- [ ] **High confidence** scores (>0.9)
+- [ ] **Reasonable threat scores** (0.0-10.0 range)
+- [ ] **Sub-millisecond latency** in `processing_time_ms`
+- [ ] **Ensemble model** used for predictions
+
+#### ✅ **Suricata Events Index**
+- [ ] **Continuous stats events** (every ~8 seconds)
+- [ ] **Increasing uptime** values
+- [ ] **Zero packet drops** in kernel_drops
+- [ ] **Active packet processing** in kernel_packets
+
+### 🎯 Time Filter Settings
+
+**Recommended Kibana Time Filters:**
+- **Last 15 minutes**: See recent demo results
+- **Last 1 hour**: View complete demo session
+- **Last 24 hours**: See all historical data
+- **Custom range**: Focus on specific demo runs
+
+**Note**: Demo-generated alerts use current timestamps, so relative time filters work correctly.
+
 ## 🎓 Educational Value
 
 ### For Students
-- **Complete Pipeline**: See entire cybersecurity workflow
-- **Real Data**: NSL-KDD industry-standard dataset
-- **Multiple Algorithms**: Compare ML approaches
+- **Complete Pipeline**: See entire cybersecurity workflow in Kibana
+- **Real Data**: NSL-KDD industry-standard dataset results
+- **Multiple Algorithms**: Compare ML approaches in dashboards
 - **Performance Analysis**: Understand latency vs accuracy tradeoffs
 
 ### For Researchers  
-- **Benchmark Results**: Reproducible 99.2% accuracy
-- **Extensible Framework**: Add new algorithms easily
-- **Real-time Capabilities**: Sub-millisecond detection
-- **SIEM Integration**: Production-ready monitoring
+- **Benchmark Results**: Reproducible 99.2% accuracy in ML detections
+- **Extensible Framework**: Add new algorithms and monitor in Kibana
+- **Real-time Capabilities**: Sub-millisecond detection visible in dashboards
+- **SIEM Integration**: Production-ready monitoring and alerting
 
 ### For Security Professionals
-- **Operational Readiness**: 9-service architecture
-- **Threat Intelligence**: Categorized attack patterns
-- **Incident Response**: Real-time alerting
-- **Compliance**: Audit trails in Elasticsearch
+- **Operational Readiness**: 9-service architecture monitoring
+- **Threat Intelligence**: Categorized attack patterns in alerts
+- **Incident Response**: Real-time alerting and investigation tools
+- **Compliance**: Complete audit trails in Elasticsearch indices
 
 ## 🔧 Troubleshooting Demo Issues
 
