@@ -48,23 +48,43 @@ The Suricata ML-IDS demo demonstrates a complete cybersecurity pipeline from att
 - Training Time: 5.8 seconds
 
 ### Phase 3: Attack Simulation & Detection
+
+The system provides **two different demo types** for different testing purposes:
+
+#### Option A: ML Detection Demo (Isolated Testing)
 ```bash
 ./scripts/demo.sh demo-detection
 ```
 
-**What Happens:**
+#### Option B: Feature Extraction Demo (Complete Pipeline)
+```bash
+./scripts/demo.sh demo-extraction
+```
+
+**What Happens in Each:**
 
 #### 3.1 Real-time ML Detection Tests
-For each attack category, the system simulates realistic network traffic patterns:
+The `demo-detection` command tests the ML pipeline directly with pre-calculated features:
 
-1. **Traffic Simulation**: Generate realistic network feature patterns (not direct ML input)
-2. **Feature Extraction**: Convert simulated traffic into 122 network features
-3. **API Call**: POST to `/detect` endpoint with extracted features
-4. **ML Processing**: Ensemble model prediction on processed features
-5. **Threat Scoring**: Risk assessment (0.0-1.0 scale)
-6. **Response Generation**: JSON with prediction, confidence, latency
+1. **Pre-calculated Features**: Demo provides realistic feature vectors directly (bypasses PCAP processing)
+2. **API Call**: POST to `/detect` endpoint (port 8080) with feature dictionary
+3. **ML Processing**: Ensemble model prediction on provided features
+4. **Threat Scoring**: Risk assessment (0.0-1.0 scale)
+5. **Response Generation**: JSON with prediction, confidence, latency
 
-**Note**: The demo simulates the *results* of traffic analysis (feature vectors) rather than generating actual network packets, but represents the same data flow as real traffic would produce.
+**Important**: This demo **does NOT** use the feature extraction service (port 8001). It sends pre-calculated feature vectors directly to the ML detector to test the machine learning pipeline in isolation.
+
+#### 3.2 Feature Extraction Demo (Complete Pipeline)
+The `demo-extraction` command tests the complete pipeline from PCAP to features:
+
+1. **PCAP Generation**: Creates synthetic network packets using Scapy (HTTP, DNS, port scans)
+2. **File Storage**: Saves packets to `data/pcaps/samples/demo_traffic.pcap`
+3. **Feature Extraction**: POST to `/extract` endpoint (port 8001) with PCAP filename
+4. **Processing**: Feature extractor analyzes packets and generates 122 network features
+5. **CSV Output**: Returns extracted features in CSV format for ML training
+6. **Complete Flow**: Demonstrates the full pipeline from raw packets to ML-ready data
+
+**This demo DOES use the feature extraction service** and shows the complete production workflow.
 
 **Attack Categories Tested:**
 
@@ -146,11 +166,12 @@ curl "http://localhost:9200/_cat/indices?v"
 
 ### Data Flow Architecture
 
+#### Production System Flow (Complete Pipeline)
 ```mermaid
 flowchart LR
     subgraph INPUT ["🌐 Network Traffic"]
         LIVE[Live Traffic]
-        SIM[Simulated Attacks<br/>DoS, Probe, R2L, U2R]
+        PCAP[PCAP Files]
     end
     
     subgraph DETECTION ["🔍 Detection Layer"]
@@ -172,14 +193,42 @@ flowchart LR
     end
     
     LIVE --> SUR
-    SIM --> SUR
     LIVE --> FE
-    SIM --> FE
+    PCAP --> FE
     SUR --> ES
     FE --> RT
     RT --> ML
     ML --> ES
     ES --> KB
+```
+
+#### Demo Detection Flow (ML Testing Only)
+```mermaid
+flowchart LR
+    subgraph DEMO ["🎯 Demo Script"]
+        PRE[Pre-calculated<br/>Feature Vectors]
+    end
+    
+    subgraph PROCESSING ["⚡ ML Processing"]
+        RT[Real-time Detector<br/>0.4-5.6ms]
+        ML[ML Pipeline<br/>Ensemble Model]
+    end
+    
+    subgraph STORAGE ["💾 Data Storage"]
+        ES[Elasticsearch<br/>Sample alerts]
+    end
+    
+    subgraph VISUALIZATION ["📊 SIEM"]
+        KB[Kibana Dashboards<br/>Demo results]
+    end
+    
+    PRE --> RT
+    RT --> ML
+    ML --> ES
+    ES --> KB
+    
+    style PRE fill:#fff2cc,stroke:#d6b656
+    style RT fill:#e1d5e7,stroke:#9673a6
 ```
 
 ### Performance Metrics Achieved
