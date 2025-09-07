@@ -57,14 +57,14 @@ This project implements a production-ready IDS architecture featuring:
 ```mermaid
 flowchart LR
     subgraph ACCURACY ["🎯 ML Accuracy"]
-        DT[Tree<br/>99.6%]
-        KNN[k-NN<br/>99.6%]
-        ENS[Ensemble<br/>100%]
+        DT[Tree<br/>98.8%]
+        KNN[k-NN<br/>98.9%]
+        ENS[Ensemble<br/>99.2%]
     end
     
     subgraph TIMING ["⏱️ Response Times"]
         FE_TIME[Extract<br/>0.45s]
-        ML_TIME[Train<br/>0.57s]
+        ML_TIME[Train<br/>5.3s]
         RT_TIME[Detect<br/>8-29ms]
     end
     
@@ -170,21 +170,21 @@ The ML pipeline transforms raw network data into actionable threat intelligence 
 ```mermaid
 flowchart LR
     subgraph INPUT ["📥 Input"]
-        PCAP[(PCAP Files)]
+        NSL[(NSL-KDD<br/>148K samples)]
         RT[Live Traffic]
     end
     
     subgraph EXTRACT ["🔧 Extract"]
         FE[Extractor<br/>:8001]
-        CSV[(Features<br/>25+ cols)]
+        CSV[(Features<br/>122 cols)]
         FE --> CSV
     end
     
     subgraph TRAIN ["🧠 Training"]
         MLT[Trainer<br/>:8002]
-        DT[Tree<br/>99.6%]
-        KNN[k-NN<br/>99.6%]
-        ENS[Ensemble<br/>100%]
+        DT[Tree<br/>98.8%]
+        KNN[k-NN<br/>98.9%]
+        ENS[Ensemble<br/>99.2%]
         
         MLT --> DT
         MLT --> KNN
@@ -202,7 +202,7 @@ flowchart LR
         MODELS[(Models)]
     end
     
-    PCAP --> FE
+    NSL --> MLT
     RT --> FE
     CSV --> MLT
     DT --> MODELS
@@ -248,6 +248,10 @@ The system uses the **NSL-KDD dataset**, an improved version of the KDD Cup 1999
 - **k-NN Classifier**: 98.9% accuracy  
 - **Ensemble Model**: 99.2% accuracy
 - **Training Time**: ~5 seconds (sample dataset)
+
+**📚 Learn More:**
+- [Machine Learning Overview](docs/machine-learning-overview.md) - Quick technical summary
+- [ML Guide for Beginners](docs/ml-guide-for-beginners.md) - Comprehensive tutorial for newcomers
 
 ## 🔄 Data Flow Architecture
 
