@@ -24,6 +24,11 @@ This project implements a comprehensive cybersecurity solution that:
 git clone https://github.com/your-username/suricata-ml-ids.git
 cd suricata-ml-ids
 
+# Setup Python virtual environment (required for ML scripts)
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
 # Setup and start everything
 ./scripts/setup.sh
 ./scripts/demo.sh demo
@@ -44,18 +49,18 @@ cd suricata-ml-ids
 
 ```mermaid
 flowchart LR
-    subgraph INPUT ["📥 Data Sources"]
-        NSL[(NSL-KDD<br/>148K samples)]
-        NET[🌐 Live Traffic]
+    subgraph INPUT ["Data"]
+        NSL[(NSL-KDD<br/>148K samp)]
+        NET[live traffic]
     end
     
-    subgraph DETECTION ["🔍 Detection Layer"]
-        SUR[Suricata IDS<br/>Signatures]
+    subgraph DETECTION ["Detection"]
+        SUR[SuricataIDS<br/>Signatures]
         ML[ML Pipeline<br/>99.2% Accuracy]
     end
     
     subgraph SIEM ["📊 SIEM & Analytics"]
-        ES[Elasticsearch<br/>Search & Store]
+        ES[Elasticsearch]
         KB[Kibana<br/>Dashboards]
     end
     

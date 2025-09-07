@@ -5,6 +5,7 @@
 ### Prerequisites
 - Docker Engine 20.10+
 - Docker Compose 2.0+
+- Python 3.9+ (for ML scripts and utilities)
 - 8GB+ RAM (for Elasticsearch)
 - 20GB+ disk space
 
@@ -13,6 +14,11 @@
 # Clone repository and run complete demonstration
 git clone <repository-url>
 cd suricata-ml-ids
+
+# Setup Python virtual environment (required for ML scripts)
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
 # Setup and start everything
 ./scripts/setup.sh
@@ -191,19 +197,86 @@ docker system prune -f
 docker-compose restart elasticsearch
 ```
 
+## 🔄 Using Custom Datasets
+
+### Quick Custom Dataset Setup
+
+If you want to use your own dataset instead of NSL-KDD:
+
+#### 1. **Prepare Your Dataset**
+```bash
+# Option A: Use the preprocessing template
+python3 data/custom_dataset_template.py
+
+# Option B: Manual preparation
+# Ensure your CSV has:
+# - A 'label' column with 'normal' and 'attack' values
+# - Numerical feature columns
+# - No missing values
+cp your_dataset.csv data/datasets/custom_dataset.csv
+```
+
+#### 2. **Test Your Dataset**
+```bash
+# Start services
+./scripts/demo.sh start
+
+# Test training with your dataset
+curl -X POST "http://localhost:8002/train" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "dataset_filename": "custom_dataset.csv",
+       "algorithms": ["decision_tree"],
+       "target_column": "label",
+       "test_size": 0.2
+     }'
+```
+
+#### 3. **Update Demo Script (Optional)**
+```bash
+# Edit scripts/demo.sh
+# In demo_ml_training function, change:
+# "dataset_filename": "nsl_kdd_sample.csv"
+# to:
+# "dataset_filename": "custom_dataset.csv"
+
+# Run full demo with your dataset
+./scripts/demo.sh demo
+```
+
+### Dataset Requirements
+
+Your CSV file must have:
+- **Label column**: Named `label` with values `normal` or `attack`
+- **Feature columns**: Numerical values (categorical will be auto-encoded)
+- **Minimum size**: 1000+ samples recommended
+- **Format**: CSV with headers
+
+**Example format:**
+```csv
+feature1,feature2,feature3,label
+1.5,0.8,2.1,normal
+0.2,1.9,0.5,attack
+2.1,0.3,1.8,normal
+```
+
+For detailed instructions, see: **[Machine Learning Guide - Custom Datasets](machine-learning-guide.md#-using-custom-datasets)**
+
+---
+
 ## 📚 Next Steps
 
 ### For Beginners
-- Read [ML Guide for Beginners](ml-guide-for-beginners.md)
-- Explore [API Documentation](api/)
+- Read [Machine Learning Guide](machine-learning-guide.md)
+- Explore [API Documentation](api-reference.md)
 - Try modifying ML parameters in the training API
 
 ### For Developers
 - Review [System Architecture](system-architecture.md)
-- Check [Development Guide](development-guide.md)
+- Check custom dataset preprocessing examples
 - Explore service source code in `services/*/src/`
 
 ### For Security Professionals
-- Configure [Kibana Dashboards](kibana-setup.md)
+- Configure Kibana Dashboards for your data
 - Integrate with existing SIEM systems
 - Customize Suricata rules for your environment

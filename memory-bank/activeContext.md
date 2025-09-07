@@ -47,10 +47,11 @@
 
 ### Educational Value Delivered
 - **Comprehensive ML Pipeline**: NSL-KDD dataset → Feature engineering → Training → Real-time detection
+- **Training Approaches**: Static dataset training (current) + Real-time training extensions (documented)
 - **Industry-Standard Tools**: Suricata, Elasticsearch, scikit-learn, FastAPI, Docker
 - **Real-time Streaming**: Direct eve.json → Elasticsearch integration with <30ms latency
 - **Structured Learning**: Beginner guides, technical documentation, and API references
-- **Research Ready**: NSL-KDD benchmark analysis with 99.2% accuracy achievement
+- **Research Ready**: NSL-KDD benchmark analysis with 99.2% accuracy + extensibility for real-time learning
 
 ## System Capabilities
 

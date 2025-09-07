@@ -452,7 +452,7 @@ cleanup() {
     read -p "Remove generated data? (y/N): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        rm -rf data/datasets/synthetic_network_traffic.csv
+        # Synthetic data files removed (now using NSL-KDD)
         rm -rf data/models/*
         rm -rf data/results/*
         rm -rf data/pcaps/samples/*

@@ -71,7 +71,7 @@ curl -X POST http://localhost:8080/detect \
 ```bash
 curl -X POST http://localhost:8002/train \
   -H "Content-Type: application/json" \
-  -d '{"dataset_filename": "synthetic_network_traffic.csv", "algorithms": ["decision_tree", "knn"]}'
+  -d '{"dataset_filename": "nsl_kdd_sample.csv", "algorithms": ["decision_tree", "knn", "ensemble"]}'
 ```
 
 ### **Feature Extraction API**
