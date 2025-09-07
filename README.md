@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.9+-green)](https://python.org/)
 [![Suricata](https://img.shields.io/badge/Suricata-7.0.2-red)](https://suricata.io/)
 [![Elasticsearch](https://img.shields.io/badge/Elasticsearch-8.11.0-orange)](https://www.elastic.co/)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A production-ready Intrusion Detection System that combines **signature-based detection** (Suricata) with **machine learning** capabilities, achieving **99.2% accuracy** on the industry-standard NSL-KDD dataset.
 
@@ -182,6 +182,8 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for:
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+**Educational Use**: This software is designed for educational and research purposes in cybersecurity and machine learning. See LICENSE for third-party component licenses and usage guidelines.
 
 ## 🙏 Acknowledgments
 

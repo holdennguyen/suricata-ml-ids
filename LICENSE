@@ -1,0 +1,85 @@
+MIT License
+
+Copyright (c) 2024 Suricata ML-IDS Project
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Third-Party Components
+
+This project incorporates several third-party components and datasets:
+
+### NSL-KDD Dataset
+- Source: University of New Brunswick
+- License: Available for research and educational purposes
+- Citation: Tavallaee, M., Bagheri, E., Lu, W., & Ghorbani, A. A. (2009). 
+  A detailed analysis of the KDD CUP 99 data set. 
+  In IEEE Symposium on Computational Intelligence for Security and Defense Applications.
+
+### Suricata IDS
+- Copyright: Open Information Security Foundation (OISF)
+- License: GPL v2
+- Website: https://suricata.io/
+
+### Elasticsearch & Kibana
+- Copyright: Elasticsearch B.V.
+- License: Elastic License 2.0 (ELv2) and Server Side Public License (SSPL)
+- Website: https://www.elastic.co/
+
+### scikit-learn
+- Copyright: scikit-learn developers
+- License: BSD 3-Clause License
+- Website: https://scikit-learn.org/
+
+### FastAPI
+- Copyright: Sebastián Ramirez
+- License: MIT License
+- Website: https://fastapi.tiangolo.com/
+
+### Docker Images
+- Suricata: jasonish/suricata:7.0.2 (GPL v2)
+- Elasticsearch: docker.elastic.co/elasticsearch/elasticsearch:8.11.0 (ELv2/SSPL)
+- Kibana: docker.elastic.co/kibana/kibana:8.11.0 (ELv2/SSPL)
+- Redis: redis:7-alpine (BSD 3-Clause)
+
+## Educational Use Notice
+
+This software is designed for educational and research purposes in the field of 
+cybersecurity and machine learning. It is intended to help students and researchers 
+understand:
+
+- Network intrusion detection systems
+- Machine learning applications in cybersecurity
+- Docker-based microservices architecture
+- Real-time data processing and analysis
+
+## Disclaimer
+
+This software is provided for educational purposes only. While it implements 
+real security technologies, it should not be used as the sole security solution 
+in production environments without proper security review and additional hardening.
+
+The authors and contributors are not responsible for any security incidents, 
+data breaches, or other damages that may result from the use of this software.
+
+## Contributing
+
+By contributing to this project, you agree that your contributions will be 
+licensed under the same MIT License that covers the project.
