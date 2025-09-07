@@ -55,13 +55,16 @@ The Suricata ML-IDS demo demonstrates a complete cybersecurity pipeline from att
 **What Happens:**
 
 #### 3.1 Real-time ML Detection Tests
-For each attack category, the system:
+For each attack category, the system simulates realistic network traffic patterns:
 
-1. **Feature Vector Creation**: Realistic network patterns
-2. **API Call**: POST to `/detect` endpoint
-3. **ML Processing**: Ensemble model prediction
-4. **Threat Scoring**: Risk assessment (0.0-1.0 scale)
-5. **Response Generation**: JSON with prediction, confidence, latency
+1. **Traffic Simulation**: Generate realistic network feature patterns (not direct ML input)
+2. **Feature Extraction**: Convert simulated traffic into 122 network features
+3. **API Call**: POST to `/detect` endpoint with extracted features
+4. **ML Processing**: Ensemble model prediction on processed features
+5. **Threat Scoring**: Risk assessment (0.0-1.0 scale)
+6. **Response Generation**: JSON with prediction, confidence, latency
+
+**Note**: The demo simulates the *results* of traffic analysis (feature vectors) rather than generating actual network packets, but represents the same data flow as real traffic would produce.
 
 **Attack Categories Tested:**
 
@@ -147,17 +150,17 @@ curl "http://localhost:9200/_cat/indices?v"
 flowchart LR
     subgraph INPUT ["🌐 Network Traffic"]
         LIVE[Live Traffic]
-        SIM[Simulated Attacks]
+        SIM[Simulated Attacks<br/>DoS, Probe, R2L, U2R]
     end
     
     subgraph DETECTION ["🔍 Detection Layer"]
         SUR[Suricata IDS<br/>Signatures]
-        ML[ML Pipeline<br/>Ensemble Model]
+        FE[Feature Extractor<br/>122 features]
     end
     
-    subgraph PROCESSING ["⚡ Processing"]
+    subgraph PROCESSING ["⚡ ML Processing"]
         RT[Real-time Detector<br/>0.4-5.6ms]
-        FE[Feature Extractor<br/>122 features]
+        ML[ML Pipeline<br/>Ensemble Model]
     end
     
     subgraph STORAGE ["💾 Data Storage"]
@@ -169,11 +172,13 @@ flowchart LR
     end
     
     LIVE --> SUR
-    SIM --> ML
+    SIM --> SUR
+    LIVE --> FE
+    SIM --> FE
     SUR --> ES
-    ML --> RT
-    RT --> ES
-    FE --> ML
+    FE --> RT
+    RT --> ML
+    ML --> ES
     ES --> KB
 ```
 
