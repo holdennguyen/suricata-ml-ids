@@ -153,16 +153,83 @@ The demo creates structured security data:
 
 ## 📊 Elasticsearch Results Analysis
 
-### Current Data State
+### How to Check Your Indices
+
+After running the demo, check what data has been created in your environment:
+
+#### **Step 1: List All Indices**
 ```bash
-# Check indices
+# Check all indices in your Elasticsearch
 curl "http://localhost:9200/_cat/indices?v"
+
+# Filter for demo-related indices only
+curl "http://localhost:9200/_cat/indices?v" | grep -E "(suricata|ml-)"
 ```
 
-**Active Indices:**
-- `suricata-alerts-2025.09`: 18 documents (126.8kb) - Signature-based alerts
-- `ml-detections-2025.09`: 7 documents (59kb) - ML predictions  
-- `suricata-events-2025.09.07`: 6,897 documents (22.4mb) - Real-time network logs
+**Expected Output:**
+```
+health status index                    docs.count store.size
+yellow open   suricata-alerts-2025.XX         4+      XXXkb
+yellow open   ml-detections-2025.XX           1+      XXkb  
+yellow open   suricata-events-2025.XX.XX   1000+      XXmb
+```
+
+#### **Step 2: Check Document Counts**
+```bash
+# Count documents in each index
+curl "http://localhost:9200/suricata-alerts-*/_count" | jq '.count'
+curl "http://localhost:9200/ml-detections-*/_count" | jq '.count'
+curl "http://localhost:9200/suricata-events-*/_count" | jq '.count'
+```
+
+#### **Step 3: View Sample Documents**
+```bash
+# See recent Suricata alerts
+curl "http://localhost:9200/suricata-alerts-*/_search?size=3&sort=@timestamp:desc" | jq '.hits.hits[]._source'
+
+# See recent ML detections
+curl "http://localhost:9200/ml-detections-*/_search?size=3&sort=@timestamp:desc" | jq '.hits.hits[]._source'
+```
+
+### How to Create Data Views in Kibana
+
+After confirming your indices exist, create data views in Kibana to visualize the data:
+
+#### **Step 1: Access Kibana**
+1. Open **http://localhost:5601** in your browser
+2. Navigate to **Stack Management** → **Data Views**
+
+#### **Step 2: Create Suricata Alerts Data View**
+1. Click **"Create data view"**
+2. **Name**: `Suricata Alerts`
+3. **Index pattern**: `suricata-alerts-*`
+4. **Timestamp field**: `@timestamp`
+5. Click **"Save data view to Kibana"**
+
+#### **Step 3: Create ML Detections Data View**
+1. Click **"Create data view"**
+2. **Name**: `ML Detections`
+3. **Index pattern**: `ml-detections-*`
+4. **Timestamp field**: `@timestamp`
+5. Click **"Save data view to Kibana"**
+
+#### **Step 4: Create Suricata Events Data View**
+1. Click **"Create data view"**
+2. **Name**: `Suricata Events`
+3. **Index pattern**: `suricata-events-*`
+4. **Timestamp field**: `timestamp`
+5. Click **"Save data view to Kibana"**
+
+#### **Step 5: Verify Data Views**
+1. Go to **Discover** in Kibana
+2. Select each data view from the dropdown
+3. Set time filter to **"Last 1 hour"**
+4. Verify you see documents in each data view
+
+**Troubleshooting Data Views:**
+- **No documents found**: Check time filter settings
+- **Index pattern not found**: Verify indices exist with Step 1 commands
+- **Timestamp parsing errors**: Ensure correct timestamp field selected
 
 ### Data Flow Architecture
 
