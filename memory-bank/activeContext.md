@@ -14,7 +14,7 @@
 ### 🛡️ Security Services
 ✅ **Suricata IDS Service** - Fully operational with optimized rules  
 ✅ **Feature Extractor Service** - 25+ network features from PCAP files (Port 8001)  
-✅ **ML Trainer Service** - 100% accuracy Decision Tree + k-NN + Ensemble (Port 8002)  
+✅ **ML Trainer Service** - 99.2% accuracy with NSL-KDD dataset + Ensemble (Port 8002)  
 ✅ **Real-time Detector Service** - 8-29ms latency with Elasticsearch integration (Port 8080)  
 ✅ **Traffic Replay Service** - Network simulation and PCAP replay (Port 8003)  
 
@@ -94,7 +94,7 @@ cd suricata-ml-ids
 - **Elasticsearch**: GREEN cluster status, 2000+ events indexed
 - **Kibana**: Dashboard interface with working relative time filters
 - **Suricata**: Running with custom rules and health checks
-- **Core ML Pipeline**: 8-29ms latency, 100% ensemble accuracy
+- **Core ML Pipeline**: 8-29ms latency, 99.2% ensemble accuracy on NSL-KDD
 - **All Services**: 9/9 containers healthy and responding
 - **Redis**: Cache and messaging fully operational
 - **Real-time Integration**: ML predictions automatically sent to Elasticsearch

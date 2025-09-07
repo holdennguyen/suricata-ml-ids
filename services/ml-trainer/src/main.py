@@ -97,10 +97,20 @@ async def train_models(request: TrainingRequest):
         # Validate dataset
         dataset_path = DATASETS_DIR / request.dataset_filename
         if not dataset_path.exists():
-            raise HTTPException(
-                status_code=404,
-                detail=f"Dataset not found: {request.dataset_filename}"
-            )
+            # Check for NSL-KDD datasets and download if needed
+            if request.dataset_filename in ['nsl_kdd_sample.csv', 'nsl_kdd_processed.csv']:
+                logger.info(f"NSL-KDD dataset {request.dataset_filename} not found, downloading...")
+                await download_nsl_kdd_dataset()
+                if not dataset_path.exists():
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Failed to download NSL-KDD dataset: {request.dataset_filename}"
+                    )
+            else:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Dataset not found: {request.dataset_filename}"
+                )
         
         # Load and preprocess data
         df = pd.read_csv(dataset_path)
@@ -337,6 +347,137 @@ async def get_service_stats():
     except Exception as e:
         logger.error(f"Error getting stats: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+async def download_nsl_kdd_dataset():
+    """Download and preprocess NSL-KDD dataset"""
+    import urllib.request
+    import subprocess
+    import sys
+    
+    try:
+        logger.info("Downloading NSL-KDD dataset...")
+        
+        # Run the download script
+        script_path = "/app/download_nsl_kdd.py"
+        if not Path(script_path).exists():
+            # Create the download script in the container
+            download_script = '''#!/usr/bin/env python3
+import pandas as pd
+import numpy as np
+import urllib.request
+import os
+from pathlib import Path
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+NSL_KDD_URLS = {
+    'train': 'https://raw.githubusercontent.com/defcom17/NSL_KDD/master/KDDTrain%2B.txt',
+    'test': 'https://raw.githubusercontent.com/defcom17/NSL_KDD/master/KDDTest%2B.txt'
+}
+
+FEATURE_NAMES = [
+    'duration', 'protocol_type', 'service', 'flag', 'src_bytes', 'dst_bytes',
+    'land', 'wrong_fragment', 'urgent', 'hot', 'num_failed_logins', 'logged_in',
+    'num_compromised', 'root_shell', 'su_attempted', 'num_root', 'num_file_creations',
+    'num_shells', 'num_access_files', 'num_outbound_cmds', 'is_host_login',
+    'is_guest_login', 'count', 'srv_count', 'serror_rate', 'srv_serror_rate',
+    'rerror_rate', 'srv_rerror_rate', 'same_srv_rate', 'diff_srv_rate',
+    'srv_diff_host_rate', 'dst_host_count', 'dst_host_srv_count',
+    'dst_host_same_srv_rate', 'dst_host_diff_srv_rate', 'dst_host_same_src_port_rate',
+    'dst_host_srv_diff_host_rate', 'dst_host_serror_rate', 'dst_host_srv_serror_rate',
+    'dst_host_rerror_rate', 'dst_host_srv_rerror_rate', 'attack_type', 'difficulty'
+]
+
+ATTACK_TYPES = {
+    'normal': 'normal',
+    'back': 'attack', 'land': 'attack', 'neptune': 'attack', 'pod': 'attack',
+    'smurf': 'attack', 'teardrop': 'attack', 'mailbomb': 'attack', 'apache2': 'attack',
+    'processtable': 'attack', 'udpstorm': 'attack', 'satan': 'attack', 'ipsweep': 'attack', 
+    'nmap': 'attack', 'portsweep': 'attack', 'mscan': 'attack', 'saint': 'attack',
+    'guess_passwd': 'attack', 'ftp_write': 'attack', 'imap': 'attack', 'phf': 'attack',
+    'multihop': 'attack', 'warezmaster': 'attack', 'warezclient': 'attack', 'spy': 'attack',
+    'xlock': 'attack', 'xsnoop': 'attack', 'snmpread': 'attack', 'snmpwrite': 'attack',
+    'httptunnel': 'attack', 'worm': 'attack', 'named': 'attack', 'sendmail': 'attack',
+    'xterm': 'attack', 'ps': 'attack', 'sqlattack': 'attack', 'buffer_overflow': 'attack', 
+    'loadmodule': 'attack', 'perl': 'attack', 'rootkit': 'attack'
+}
+
+def load_nsl_kdd_data(filepath):
+    df = pd.read_csv(filepath, header=None, names=FEATURE_NAMES)
+    df = df.drop('difficulty', axis=1)
+    df['label'] = df['attack_type'].map(ATTACK_TYPES)
+    df = df.drop('attack_type', axis=1)
+    
+    categorical_features = ['protocol_type', 'service', 'flag']
+    for feature in categorical_features:
+        if feature in df.columns:
+            dummies = pd.get_dummies(df[feature], prefix=feature)
+            df = pd.concat([df, dummies], axis=1)
+            df = df.drop(feature, axis=1)
+    
+    numeric_columns = [col for col in df.columns if col != 'label']
+    for col in numeric_columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    df = df.fillna(0)
+    return df
+
+def main():
+    datasets_dir = Path('/app/datasets')
+    datasets_dir.mkdir(exist_ok=True)
+    
+    train_file = datasets_dir / 'KDDTrain+.txt'
+    test_file = datasets_dir / 'KDDTest+.txt'
+    
+    if not train_file.exists():
+        logger.info("Downloading training data...")
+        urllib.request.urlretrieve(NSL_KDD_URLS['train'], str(train_file))
+    
+    if not test_file.exists():
+        logger.info("Downloading test data...")
+        urllib.request.urlretrieve(NSL_KDD_URLS['test'], str(test_file))
+    
+    train_df = load_nsl_kdd_data(str(train_file))
+    test_df = load_nsl_kdd_data(str(test_file))
+    combined_df = pd.concat([train_df, test_df], ignore_index=True)
+    combined_df = combined_df.sample(frac=1, random_state=42).reset_index(drop=True)
+    
+    # Save full dataset
+    output_file = datasets_dir / 'nsl_kdd_processed.csv'
+    combined_df.to_csv(output_file, index=False)
+    
+    # Create sample dataset
+    normal_samples = combined_df[combined_df['label'] == 'normal'].sample(n=min(4000, len(combined_df[combined_df['label'] == 'normal'])), random_state=42)
+    attack_samples = combined_df[combined_df['label'] == 'attack'].sample(n=min(1000, len(combined_df[combined_df['label'] == 'attack'])), random_state=42)
+    sample_df = pd.concat([normal_samples, attack_samples], ignore_index=True)
+    sample_df = sample_df.sample(frac=1, random_state=42).reset_index(drop=True)
+    
+    sample_file = datasets_dir / 'nsl_kdd_sample.csv'
+    sample_df.to_csv(sample_file, index=False)
+    
+    logger.info(f"NSL-KDD datasets created: {len(combined_df)} full, {len(sample_df)} sample")
+
+if __name__ == "__main__":
+    main()
+'''
+            with open(script_path, 'w') as f:
+                f.write(download_script)
+            os.chmod(script_path, 0o755)
+        
+        # Execute the download script
+        result = subprocess.run([sys.executable, script_path], 
+                              capture_output=True, text=True, cwd="/app")
+        
+        if result.returncode != 0:
+            logger.error(f"NSL-KDD download failed: {result.stderr}")
+            raise Exception(f"NSL-KDD download failed: {result.stderr}")
+        
+        logger.info("NSL-KDD dataset downloaded successfully")
+        
+    except Exception as e:
+        logger.error(f"Error downloading NSL-KDD dataset: {e}")
+        raise
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -95,11 +95,25 @@ class DataProcessor:
     
     def _handle_missing_values(self, X: np.ndarray) -> np.ndarray:
         """Handle missing values in feature matrix"""
+        # Ensure all data is numeric first
+        try:
+            X = X.astype(float)
+        except (ValueError, TypeError):
+            # Handle mixed types by converting column by column
+            for i in range(X.shape[1]):
+                try:
+                    X[:, i] = pd.to_numeric(X[:, i], errors='coerce')
+                except:
+                    # If conversion fails, fill with 0
+                    X[:, i] = 0
+        
         # Replace NaN with median for each feature
         for i in range(X.shape[1]):
-            col = X[:, i]
+            col = X[:, i].astype(float)
             if np.isnan(col).any():
                 median_val = np.nanmedian(col)
+                if np.isnan(median_val):
+                    median_val = 0  # fallback if all values are NaN
                 X[:, i] = np.where(np.isnan(col), median_val, col)
         
-        return X
+        return X.astype(float)

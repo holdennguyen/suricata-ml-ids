@@ -94,7 +94,7 @@ check_services_health() {
         fi
         
         # Check Suricata
-        if docker exec suricata-ids pgrep suricata > /dev/null 2>&1; then
+        if docker exec suricata-ids ps aux | grep -v grep | grep suricata > /dev/null 2>&1; then
             ((healthy_services++))
         fi
         
@@ -176,31 +176,26 @@ show_logs() {
 
 # Function to run ML training demo
 demo_ml_training() {
-    print_demo "Running ML Training Demo..."
+    print_demo "Running ML Training Demo with NSL-KDD Dataset..."
     
-    # Check if synthetic data exists
-    if [ ! -f "data/datasets/synthetic_network_traffic.csv" ]; then
-        print_warning "Synthetic data not found. Generating..."
-        (cd data && python3 generate_synthetic_data.py)
-    fi
-    
-    # Train models using API
-    print_demo "Training Decision Tree and k-NN models..."
+    # Train models using NSL-KDD sample dataset (will auto-download if not exists)
+    print_demo "Training Decision Tree, k-NN, and Ensemble models on NSL-KDD data..."
     
     curl -X POST "http://localhost:8002/train" \
          -H "Content-Type: application/json" \
          -d '{
-           "dataset_filename": "synthetic_network_traffic.csv",
+           "dataset_filename": "nsl_kdd_sample.csv",
            "algorithms": ["decision_tree", "knn", "ensemble"],
            "target_column": "label",
            "test_size": 0.2,
            "hyperparameters": {
-             "decision_tree": {"max_depth": [20]},
-             "knn": {"n_neighbors": [5]}
+             "decision_tree": {"max_depth": 15, "random_state": 42},
+             "knn": {"n_neighbors": 7},
+             "ensemble": {"n_estimators": 100, "random_state": 42}
            }
          }' | jq '.'
     
-    print_success "ML training demo completed!"
+    print_success "ML training demo with NSL-KDD completed!"
 }
 
 # Function to run real-time detection demo
@@ -397,7 +392,7 @@ show_status() {
     fi
     
     # Check Suricata
-    if docker exec suricata-ids pgrep suricata > /dev/null 2>&1; then
+    if docker exec suricata-ids ps aux | grep -v grep | grep suricata > /dev/null 2>&1; then
         print_success "suricata is healthy"
     else
         print_error "suricata is not responding"
