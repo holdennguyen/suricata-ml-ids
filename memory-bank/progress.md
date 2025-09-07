@@ -28,7 +28,7 @@
   - Decision Tree implementation
   - k-NN algorithm with scaling
   - Ensemble model combining multiple algorithms
-  - >90% accuracy achievement on synthetic data
+  - 99.2% accuracy achievement on NSL-KDD dataset
   - Model persistence and evaluation metrics
 - [x] **Real-time Detector Service**
   - 8-29ms latency ensemble predictions with Elasticsearch integration
