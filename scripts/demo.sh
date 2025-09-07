@@ -424,7 +424,7 @@ demo_realtime_detection() {
     curl -X POST "http://localhost:9200/suricata-alerts-$(date +%Y.%m)/_doc" \
          -H "Content-Type: application/json" \
          -d "{
-           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)\",
+           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)\",
            \"event_type\": \"alert\",
            \"alert\": {
              \"signature\": \"DoS SYN Flood Attack Detected\",
@@ -443,7 +443,7 @@ demo_realtime_detection() {
     curl -X POST "http://localhost:9200/suricata-alerts-$(date +%Y.%m)/_doc" \
          -H "Content-Type: application/json" \
          -d "{
-           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)\",
+           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)\",
            \"event_type\": \"alert\",
            \"alert\": {
              \"signature\": \"Port Scan Detected\",
@@ -462,7 +462,7 @@ demo_realtime_detection() {
     curl -X POST "http://localhost:9200/suricata-alerts-$(date +%Y.%m)/_doc" \
          -H "Content-Type: application/json" \
          -d "{
-           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)\",
+           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)\",
            \"event_type\": \"alert\",
            \"alert\": {
              \"signature\": \"Brute Force Login Attempt\",
@@ -481,7 +481,7 @@ demo_realtime_detection() {
     curl -X POST "http://localhost:9200/suricata-alerts-$(date +%Y.%m)/_doc" \
          -H "Content-Type: application/json" \
          -d "{
-           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)\",
+           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)\",
            \"event_type\": \"alert\",
            \"alert\": {
              \"signature\": \"Buffer Overflow Attempt Detected\",
@@ -501,7 +501,7 @@ demo_realtime_detection() {
     curl -X POST "http://localhost:9200/ml-detections-$(date +%Y.%m)/_doc" \
          -H "Content-Type: application/json" \
          -d "{
-           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)\",
+           \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)\",
            \"prediction\": \"attack\",
            \"confidence\": 0.95,
            \"threat_score\": 9.2,
