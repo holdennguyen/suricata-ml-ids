@@ -86,16 +86,35 @@ Is packet_size > 500?
 ├─ YES: Is duration > 10s? → ATTACK
 └─ NO: NORMAL
 ```
+**Like**: A flowchart of yes/no questions  
 **Best for**: Explainable decisions, fast predictions
 
 ### 2. k-Nearest Neighbors (98.9% accuracy)
-- Look at 5 most similar past connections
-- If 3+ were attacks → Classify as attack
+```
+New connection → Find 5 similar past cases → Vote on result
+Example: 4 were normal, 1 was attack → Predict NORMAL
+```
+**Like**: "Show me similar cases and I'll predict based on them"  
 **Best for**: Pattern similarity detection
 
-### 3. Ensemble Model (99.2% accuracy) ⭐
-- Combines multiple algorithms like a committee vote
-- **Production recommended**: Highest accuracy + reliability
+### 3. Random Forest (~99.1% accuracy)
+```
+Creates 100 decision trees → Each votes → Average the results
+Tree 1: NORMAL (85%), Tree 2: ATTACK (75%), ... → Final: NORMAL (87%)
+```
+**Like**: Ask 100 experts and average their opinions  
+**Best for**: Robust general-purpose detection
+
+### 4. Ensemble Model (99.2% accuracy) ⭐
+```
+Combines all three algorithms using "soft voting":
+Decision Tree: 80% attack confidence
+k-NN: 90% attack confidence  
+Random Forest: 85% attack confidence
+→ Ensemble: 85% attack confidence
+```
+**Like**: Medical diagnosis from 3 different doctors  
+**Best for**: **Production use** - highest accuracy + reliability
 
 ### Performance Results
 
@@ -103,7 +122,16 @@ Is packet_size > 500?
 |-----------|----------|-------|----------|
 | Decision Tree | 98.8% | Fastest | Explainable AI |
 | k-NN | 98.9% | Medium | Pattern matching |
-| **Ensemble** | **99.2%** | Fast | **Production** |
+| Random Forest | ~99.1% | Fast | General purpose |
+| **Ensemble (All 3)** | **99.2%** | Fast | **Production** |
+
+### Why Ensemble Works Better
+
+**Team of Experts Approach:**
+- Each algorithm has different strengths and weaknesses
+- If Decision Tree makes mistake → k-NN and Random Forest correct it
+- If one algorithm is uncertain → Others provide clarity
+- **Soft voting** uses confidence levels, not just simple votes
 
 **Real-world impact** (10,000 connections/hour):
 - ✅ 9,920 correctly processed
@@ -120,7 +148,7 @@ curl -X POST "http://localhost:8002/train" \
      -H "Content-Type: application/json" \
      -d '{
        "dataset_filename": "nsl_kdd_sample.csv",
-       "algorithms": ["ensemble"],
+       "algorithms": ["decision_tree", "knn", "ensemble"],
        "target_column": "label"
      }'
 ```
