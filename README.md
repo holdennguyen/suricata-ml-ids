@@ -131,14 +131,11 @@ flowchart LR
 - **[📊 Performance Metrics](docs/performance-metrics.md)** - Benchmarks and analysis
 
 ### Machine Learning
-- **[🧠 ML Overview](docs/machine-learning-overview.md)** - Technical summary
-- **[🎓 ML Guide for Beginners](docs/ml-guide-for-beginners.md)** - Complete tutorial
-- **[📈 NSL-KDD Analysis](docs/nsl-kdd-analysis.md)** - Dataset deep dive
+- **[🧠 Machine Learning Guide](docs/machine-learning-guide.md)** - Complete ML tutorial from basics to advanced
 
 ### API & Development
-- **[📖 API Documentation](docs/api/)** - Complete API reference
-- **[🛠️ Development Guide](docs/development-guide.md)** - Contributing and extending
-- **[🔧 Configuration](docs/configuration.md)** - Setup and customization
+- **[📖 API Reference](docs/api-reference.md)** - Complete API documentation
+- **[🛠️ Technology Stack](docs/technology-stack.md)** - Complete technology overview
 
 ## 🌐 Access Points
 
@@ -193,14 +190,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **scikit-learn**: Python Software Foundation
 
 ---
-
-## 📚 Documentation
-
-- **[Quick Start Guide](docs/quick-start-guide.md)** - Installation and basic usage
-- **[Machine Learning Guide](docs/machine-learning-guide.md)** - Complete ML tutorial
-- **[System Architecture](docs/system-architecture.md)** - Technical architecture
-- **[Technology Stack](docs/technology-stack.md)** - Complete technology overview
-- **[API Reference](docs/api-reference.md)** - Complete API documentation
-- **[Performance Metrics](docs/performance-metrics.md)** - Benchmarks and analysis
 
 **Need help?** → [Issues](https://github.com/your-username/suricata-ml-ids/issues)
