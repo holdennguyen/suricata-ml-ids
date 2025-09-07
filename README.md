@@ -127,6 +127,7 @@ flowchart LR
 
 ### Quick Access
 - **[🚀 Quick Start Guide](docs/quick-start-guide.md)** - Get running in 5 minutes
+- **[🔄 Demo Flow Explanation](docs/demo-flow-explanation.md)** - Complete end-to-end walkthrough
 - **[🏗️ System Architecture](docs/system-architecture.md)** - Technical deep dive
 - **[📊 Performance Metrics](docs/performance-metrics.md)** - Benchmarks and analysis
 
