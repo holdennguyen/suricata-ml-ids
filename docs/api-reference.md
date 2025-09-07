@@ -255,18 +255,69 @@ curl "http://localhost:8002/health"
 **Purpose:** Real-time network threat detection using trained ML models
 
 ```bash
+# Normal Web Traffic Example
 curl -X POST "http://localhost:8080/detect" \
      -H "Content-Type: application/json" \
      -d '{
-       "features": [0, 1, 0, 0, 181, 5450, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 9, 9, 1.0, 0.0, 0.11, 0.0, 0.0, 0.0, 0.0, 0.0],
-       "model_type": "ensemble"
+       "features": {
+         "total_packets": 150,
+         "total_bytes": 15000,
+         "avg_packet_size": 100.0,
+         "duration": 5.0,
+         "tcp_ratio": 0.8,
+         "udp_ratio": 0.2,
+         "icmp_ratio": 0.0,
+         "packets_per_second": 30.0,
+         "unique_src_ips": 2,
+         "unique_dst_ips": 3,
+         "tcp_syn_ratio": 0.6,
+         "well_known_ports": 0.6,
+         "high_ports": 0.4,
+         "payload_entropy": 7.5,
+         "suspicious_flags": 0.05,
+         "http_requests": 10,
+         "dns_queries": 5,
+         "tls_handshakes": 3
+       },
+       "source_ip": "192.168.1.100",
+       "dest_ip": "10.0.0.50"
+     }'
+```
+
+```bash
+# DoS Attack Example (SYN Flood)
+curl -X POST "http://localhost:8080/detect" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "features": {
+         "total_packets": 1000,
+         "total_bytes": 50000,
+         "avg_packet_size": 50.0,
+         "duration": 1.0,
+         "tcp_ratio": 0.98,
+         "udp_ratio": 0.02,
+         "icmp_ratio": 0.0,
+         "packets_per_second": 1000.0,
+         "unique_src_ips": 1,
+         "unique_dst_ips": 100,
+         "tcp_syn_ratio": 0.95,
+         "well_known_ports": 0.1,
+         "high_ports": 0.9,
+         "payload_entropy": 2.5,
+         "suspicious_flags": 0.9,
+         "http_requests": 0,
+         "dns_queries": 0,
+         "tls_handshakes": 0
+       },
+       "source_ip": "10.0.0.100",
+       "dest_ip": "192.168.1.0/24"
      }'
 ```
 
 **Request Body:**
 ```json
 {
-  "features": [float],             // 122-element feature vector
+  "features": {                    // Dictionary of network features
   "model_type": "string",          // "decision_tree", "knn", or "ensemble"
   "threshold": 0.5,                // Classification threshold (default: 0.5)
   "return_probabilities": true,    // Include prediction probabilities

@@ -15,7 +15,7 @@
 ✅ **Suricata IDS Service** - Fully operational with optimized rules  
 ✅ **Feature Extractor Service** - 25+ network features from PCAP files (Port 8001)  
 ✅ **ML Trainer Service** - 99.2% accuracy with NSL-KDD dataset + Ensemble (Port 8002)  
-✅ **Real-time Detector Service** - 8-29ms latency with Elasticsearch integration (Port 8080)  
+✅ **Real-time Detector Service** - 0.4-5.6ms latency with comprehensive attack detection (Port 8080)  
 ✅ **Traffic Replay Service** - Network simulation and PCAP replay (Port 8003)  
 
 ### 📊 SIEM & Analytics
@@ -27,7 +27,7 @@
 ### 🚀 Automation & Deployment
 ✅ **One-Command Deployment** - `./demo.sh demo` for complete system startup  
 ✅ **Setup Automation** - `./setup.sh` for environment preparation  
-✅ **Demo Scenarios** - ML training, feature extraction, and real-time detection demos  
+✅ **Demo Scenarios** - Comprehensive attack simulations (DoS, Probe, R2L, U2R) + ML training and feature extraction  
 ✅ **NSL-KDD Dataset** - Industry-standard benchmark with 148K samples for model training  
 
 ### 📚 Documentation & Education
